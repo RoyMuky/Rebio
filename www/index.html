@@ -196,13 +196,16 @@ const facDe=car=>FACS.find(f=>f.car.includes(car));
 const centroDeCarrera=car=>(facDe(car)||{}).c||'';
 function carreraOptions(sel){return FACS.map(f=>`<optgroup label="${f.s} · ${f.n}">${f.car.map(c=>`<option ${sel===c?'selected':''}>${c}</option>`).join('')}</optgroup>`).join('')+`<optgroup label="Otros">${OTROS_ROLES.map(c=>`<option ${sel===c?'selected':''}>${c}</option>`).join('')}</optgroup>`}
 const CONDS=['Nuevo','Usado · Bueno','Usado · Regular'];
-const MODES={venta:'Venta',intercambio:'Intercambio',donacion:'Donación'};
+const MODES={venta:'Venta',intercambio:'Intercambio',donacion:'Donación a Re-Bio'};
+const DST={por_entregar:['Por entregar','res'],recibida:['Recibida por Re-Bio','ok'],transformacion:['En transformación','ok'],convertida:['Convertida en producto','don']};
+const DSTEPS=['por_entregar','recibida','transformacion','convertida'];
 const UNITS=['unidades','metros','m²','kg','litros','galones','cajas'];
-const KEY='rebio-proto-v2';
+const KEY='rebio-proto-v3';
 
 /* ===== Datos de ejemplo ===== */
 function seed(){
  const now=Date.now(),d=n=>now-n*864e5;
+ const D=(id,donor,title,cat,qty,unit,kg,centro,icon,status,ago,product)=>({id,donor,title,cat,qty,unit,kg,centro,icon,status,product:product||null,cond:'Usado',desc:'',photos:[],t:d(ago),code:String(1000+Math.floor(Math.random()*9000))});
  const M=(id,title,cat,cond,mode,price,owner,centro,qty,unit,kg,i,desc,extra={})=>({id,title,cat,cond,mode,price,owner,centro,qty,unit,kg,icon:i,desc,photos:[],status:'activa',created:d(Math.random()*20),...extra});
  return {
   session:null,
@@ -211,26 +214,36 @@ function seed(){
    me:{id:'me',name:'Usuario Demo',carrera:'Biología',since:2026,kg:12,ratings:[5,4,5],email:'demo@espol.edu.ec'},
    u1:{id:'u1',name:'María López',carrera:'Diseño de Productos',since:2023,kg:46,ratings:[5,5,4,5]},
    u2:{id:'u2',name:'Carlos Pérez',carrera:'Electricidad',since:2024,kg:21,ratings:[4,5,4]},
-   u3:{id:'u3',name:'Ana Torres',carrera:'Biología',since:2025,kg:9,ratings:[5]}},
+   u3:{id:'u3',name:'Ana Torres',carrera:'Biología',since:2025,kg:9,ratings:[5]},
+   rebio:{id:'rebio',name:'Re-Bio',carrera:'Tienda oficial · productos hechos con donaciones',since:2026,kg:0,ratings:[5,5,4,5,5],official:true}},
   mats:[
    M('m1','Tablero MDF','madera','Usado · Bueno','venta',5,'u1','aefadcom',1,'unidades',12,'🪵','Tablero de MDF de 18 mm, buen estado. Ideal para maquetas.',{featured:true}),
    M('m2','Cable eléctrico','electronica','Usado · Bueno','venta',2,'u2','aefiec',5,'metros',1.5,'🔌','Cable de cobre calibre 12, sobrante de laboratorio.'),
-   M('m3','Tubería PVC','plasticos','Usado · Bueno','donacion',0,'u3','aefcv',4,'metros',4,'🧪','Tubos de PVC de 1/2 pulgada, sin fisuras.'),
    M('m4','Pintura látex','otros','Usado · Bueno','intercambio',0,'u3','aefcv',1,'galones',4,'🎨','Medio galón de pintura látex blanca.',{want:'Tubos PVC o madera'}),
    M('m5','Tornillos','herramientas','Nuevo','venta',1,'u2','aefiec',1,'cajas',.5,'🔩','Caja de 100 tornillos para madera.'),
-   M('m6','Maderas varias','madera','Usado · Regular','donacion',0,'u1','aefadcom',10,'unidades',8,'🪵','Retazos de madera de distintas medidas.'),
    M('m7','Fuente de poder','electronica','Usado · Bueno','intercambio',0,'u2','aefiec',1,'unidades',1,'🔋','Fuente ATX de 500 W, funciona.',{want:'Calculadora o herramientas'}),
    M('m8','Tarjeta madre','electronica','Usado · Regular','venta',15,'u2','aefiec',1,'unidades',.8,'💾','Tarjeta madre de escritorio, para repuestos.'),
    M('m9','Disco duro 500GB','electronica','Usado · Bueno','venta',10,'u1','aefadcom',1,'unidades',.3,'💽','Disco de 500 GB, formateado.'),
-   M('m10','Teclado','electronica','Usado · Bueno','donacion',0,'u3','aefcv',1,'unidades',.6,'⌨️','Teclado USB en español.'),
    M('m11','Monitor LCD 19"','electronica','Usado · Regular','venta',20,'u1','aefadcom',1,'unidades',3.5,'🖥️','Monitor de 19 pulgadas con una raya leve.'),
-   M('m12','Ladrillos','construccion','Usado · Regular','donacion',0,'u1','aefadcom',20,'unidades',50,'🧱','Ladrillos sobrantes de una maqueta a escala real.'),
-   M('m13','Puerta metálica','metales','Usado · Bueno','donacion',0,'u2','aefiec',1,'unidades',25,'🚪','Puerta metálica de 80 × 200 cm.'),
-   M('m14','Azulejos','construccion','Usado · Bueno','donacion',0,'u3','aefcv',2,'m²',15,'◻️','Azulejos blancos de 20 × 20 cm.'),
-   M('m15','Cartón corrugado','papeleria','Usado · Bueno','donacion',0,'u3','aefcv',3,'kg',3,'📦','Planchas de cartón para maquetas.'),
    M('m16','Retazos de tela','textiles','Usado · Bueno','venta',3,'u1','aefadcom',2,'kg',2,'🧵','Retazos de algodón de colores.'),
    M('m17','Tubos PVC','plasticos','Usado · Bueno','intercambio',0,'me','aefcv',3,'metros',3,'🧪','Tres tubos de PVC de 1 m.',{want:'Pintura o madera'}),
-   M('m18','Calculadora científica','electronica','Usado · Bueno','intercambio',0,'me','aefiec',1,'unidades',.2,'🧮','Calculadora Casio fx-82, funciona perfecto.',{want:'Componentes electrónicos'})],
+   M('m18','Calculadora científica','electronica','Usado · Bueno','intercambio',0,'me','aefiec',1,'unidades',.2,'🧮','Calculadora Casio fx-82, funciona perfecto.',{want:'Componentes electrónicos'}),
+   M('r1','Mancuernas recicladas (par)','otros','Nuevo','venta',8,'rebio','aefimcp',4,'unidades',4,'🏋️','Par de mancuernas de 2 kg cada una, hechas con tubería PVC y relleno de ladrillo triturado.',{product:true,line:'Ejercicio',from:['d1','d4'],featured:true}),
+   M('r2','Banco para ejercicios','otros','Nuevo','venta',25,'rebio','aefimcp',1,'unidades',18,'🪑','Banco plano de madera reutilizada con estructura metálica recuperada. Soporta hasta 100 kg.',{product:true,line:'Ejercicio',from:['d2','d5']}),
+   M('r3','Colchoneta de retazos','otros','Nuevo','venta',10,'rebio','aefadcom',3,'unidades',1.5,'🧘','Colchoneta para estiramientos y yoga, rellena y forrada con retazos de tela.',{product:true,line:'Ejercicio',from:['d8']}),
+   M('r4','Organizador de escritorio','otros','Nuevo','venta',3,'rebio','aefcv',6,'unidades',.5,'🗂️','Organizador de 3 compartimentos hecho con cartón corrugado reforzado.',{product:true,line:'Estudio',from:['d6']}),
+   M('r5','Maceta con mosaico','otros','Nuevo','venta',4.5,'rebio','aefcv',5,'unidades',1.2,'🪴','Maceta decorada con azulejos recuperados. Incluye plato.',{product:true,line:'Hogar y jardín',from:['d7']})],
+  dons:[
+   D('d1','u3','Tubería PVC','plasticos',4,'metros',4,'aefcv','🧪','convertida',8,'r1'),
+   D('d2','u1','Maderas varias','madera',10,'unidades',8,'aefadcom','🪵','convertida',9,'r2'),
+   D('d3','u3','Teclado','electronica',1,'unidades',.6,'aefcv','⌨️','recibida',2),
+   D('d4','u1','Ladrillos','construccion',20,'unidades',50,'aefadcom','🧱','convertida',12,'r1'),
+   D('d5','u2','Puerta metálica','metales',1,'unidades',25,'aefiec','🚪','convertida',10,'r2'),
+   D('d6','u3','Cartón corrugado','papeleria',3,'kg',3,'aefcv','📦','convertida',7,'r4'),
+   D('d7','u3','Azulejos','construccion',2,'m²',15,'aefcv','◻️','convertida',11,'r5'),
+   D('d8','u1','Retazos y ropa usada','textiles',4,'kg',4,'aefadcom','👕','convertida',6,'r3'),
+   D('d9','me','Botellas plásticas','plasticos',30,'unidades',1.5,'aefcv','🧴','transformacion',3),
+   D('d10','me','Cuadernos usados','papeleria',2,'kg',2,'aefcv','📓','por_entregar',.3)],
   props:[
    {id:'p1',from:'u3',to:'me',offer:'m4',want:'m17',status:'pendiente',t:d(1)},
    {id:'p2',from:'u2',to:'me',offer:'m7',want:'m18',status:'pendiente',t:d(2)}],
@@ -240,10 +253,11 @@ function seed(){
    {f:'me',x:'¿En qué estado está?',t:d(.18)},{f:'u1',x:'Está en buen estado, lo puedes ver en las fotos.',t:d(.17)},
    {f:'me',x:'Perfecto, ¿cuándo podemos coordinar?',t:d(.16)}]}],
   notifs:[{x:'Ana Torres te propuso un intercambio por Tubos PVC',t:d(1),r:false,go:['swaps',{tab:'recibidas'}]},
-          {x:'Carlos Pérez te propuso un intercambio por Calculadora científica',t:d(2),r:false,go:['swaps',{tab:'recibidas'}]}],
+          {x:'Carlos Pérez te propuso un intercambio por Calculadora científica',t:d(2),r:false,go:['swaps',{tab:'recibidas'}]},
+          {x:'Re-Bio está transformando tu donación: Botellas plásticas',t:d(2.5),r:true,go:['don',{id:'d9'}]}],
   seq:100};
 }
-let S; try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){} if(!S||!S.mats) S=seed();
+let S; try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){} if(!S||!S.mats||!S.dons) S=seed();
 let warnedQuota=false;
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){if(!warnedQuota){warnedQuota=true;toast('Almacenamiento lleno: las fotos nuevas no se guardarán al recargar.')}}}
 const uid=p=>p+(++S.seq);
@@ -265,9 +279,12 @@ const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
 const qtyTxt=m=>m.qty+' '+(m.qty==1?({unidades:'unidad',metros:'metro',galones:'galón',cajas:'caja',litros:'litro'}[m.unit]||m.unit):m.unit);
 const kgf=n=>(Math.round(n*10)/10).toString().replace('.',',');
 const thumb=m=>`<div class="th">${m.photos&&m.photos[0]?`<img src="${m.photos[0]}" alt="">`:m.icon}</div>`;
-const priceTxt=m=>m.mode==='venta'?usd(m.price):m.mode==='donacion'?'Donación':'Intercambio';
-const modeTag=m=>`<span class="tag ${m.mode==='donacion'?'don':''}">${MODES[m.mode]}</span>`;
-const stTag=m=>m.status==='activa'?'<span class="tag ok">Activa</span>':m.status==='reservada'?'<span class="tag res">Reservada</span>':m.status==='pausada'?'<span class="tag">Pausada</span>':'<span class="tag don">Entregada</span>';
+const priceTxt=m=>m.mode==='venta'?usd(m.price):'Intercambio';
+const don=id=>S.dons.find(x=>x.id===id);
+const dTag=x=>`<span class="tag ${DST[x.status][1]}">${DST[x.status][0]}</span>`;
+const shop=()=>S.mats.filter(m=>m.product);
+const modeTag=m=>m.product?'<span class="tag don">Tienda Re-Bio</span>':`<span class="tag">${MODES[m.mode]}</span>`;
+const stTag=m=>m.product?(m.qty>0?`<span class="tag ok">${m.qty} disponible${m.qty===1?'':'s'}</span>`:'<span class="tag">Agotado</span>'):m.status==='activa'?'<span class="tag ok">Activa</span>':m.status==='reservada'?'<span class="tag res">Reservada</span>':m.status==='pausada'?'<span class="tag">Pausada</span>':'<span class="tag don">Entregada</span>';
 const unread=()=>S.notifs.filter(n=>!n.r).length;
 function toast(msg){document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.textContent=msg;$('app').appendChild(t);setTimeout(()=>t.remove(),2800)}
 function notify(x,go){S.notifs.unshift({x,t:Date.now(),r:false,go});save();const cur=NAV[NAV.length-1].s;if(!['publish','splash'].includes(cur)&&S.session)render(true);toast('🔔 '+x)}
@@ -298,9 +315,9 @@ function tabs(on){
  const T=[['home','🏠','Inicio'],['search','🔍','Buscar'],['publish','➕','Publicar'],['inbox','💬','Mensajes'],['profile','👤','Perfil']];
  return `<div class="tabs">${T.map(([s,i,l])=>`<button class="${on===s?'on':''}" onclick="${s==='publish'?"go('publish')":`reset('${s}')`}"><span class="i">${i}</span>${l}</button>`).join('')}</div>`;
 }
-const rowItem=m=>`<div class="li" onclick="go('detail',{id:'${m.id}'})">${thumb(m)}<div class="mid"><div class="t">${esc(m.title)}</div><div class="s">${esc(m.cond)} · ${esc(centro(m.centro).u)}</div></div><div class="r ${m.mode==='donacion'?'':'price'}" style="${m.mode==='donacion'?'color:var(--g)':''}">${priceTxt(m)}</div></div>`;
+const rowItem=m=>`<div class="li" onclick="go('detail',{id:'${m.id}'})">${thumb(m)}<div class="mid"><div class="t">${esc(m.title)}</div><div class="s">${m.product?'Tienda Re-Bio · '+esc(m.line):esc(m.cond)+' · '+esc(centro(m.centro).u)}</div></div><div class="r price">${priceTxt(m)}</div></div>`;
 const empty=(e,t,extra='')=>`<div class="empty"><div class="e">${e}</div>${t}${extra}</div>`;
-const active=()=>S.mats.filter(m=>m.status==='activa'&&m.owner!=='me');
+const active=()=>S.mats.filter(m=>m.status==='activa'&&m.owner!=='me'&&!m.product);
 function field(id,label,inner){return `<label class="f" for="${id}">${label}</label>${inner}<div class="err" id="${id}-err"></div>`}
 function setErr(id,msg){const e=$(id+'-err');if(e)e.textContent=msg||'';const i=$(id);if(i)i.classList.toggle('bad',!!msg);return !msg}
 const val=id=>($(id)?.value??'');
@@ -318,7 +335,8 @@ function openMenu(){
  <div class="li" onclick="closeMenu();reset('profile')">👤&nbsp; Mi perfil</div>
  <div class="li" onclick="closeMenu();go('swaps')">⇄&nbsp; Mis intercambios</div>
  <div class="li" onclick="closeMenu();reset('inbox')">💬&nbsp; Mensajes</div>
- <div class="li" onclick="closeMenu();go('donaciones')">🎁&nbsp; Donaciones</div>
+ <div class="li" onclick="closeMenu();go('tienda')">🛍️&nbsp; Tienda Re-Bio</div>
+ <div class="li" onclick="closeMenu();go('donaciones')">🎁&nbsp; Donar a Re-Bio</div>
  <div class="li" onclick="closeMenu();go('centros')">📍&nbsp; Centros de acopio</div>
  <div class="li" onclick="closeMenu();logout()">🚪&nbsp; Cerrar sesión</div>`:''}</div>`;
  $('app').appendChild(d);
@@ -393,24 +411,26 @@ function doVerify(){
 /* P4 Inicio */
 SCREENS.home=()=>{
  const others=active().filter(m=>m.owner!=='me');
- const f=others.find(m=>m.featured)||others[0];
+ const prods=shop().filter(m=>m.qty>0);
+ const f=prods.find(m=>m.featured)||others.find(m=>m.featured)||others[0];
  const list=others.sort((a,b)=>b.created-a.created).slice(0,9);
  return `${hBrand()}<div class="body">
  <div class="search" onclick="reset('search')">🔍 <span>Buscar materiales</span></div>
- ${f?`<div class="banner" onclick="go('detail',{id:'${f.id}'})">${f.photos[0]?`<img src="${f.photos[0]}" alt="">`:`<div class="big">${f.icon}</div>`}<div class="tx"><b>Material destacado</b>${esc(f.title)} · ${priceTxt(f)}<div class="sm mut" style="text-decoration:underline">Ver más</div></div></div>`:''}
+ ${f?`<div class="banner" onclick="go('detail',{id:'${f.id}'})">${f.photos[0]?`<img src="${f.photos[0]}" alt="">`:`<div class="big">${f.icon}</div>`}<div class="tx"><b>${f.product?'Hecho con tus donaciones':'Material destacado'}</b>${esc(f.title)} · ${priceTxt(f)}<div class="sm mut" style="text-decoration:underline">Ver más</div></div></div>`:''}
  <div class="quick"><button onclick="go('cat',{cat:'all',mode:'intercambio'})">Intercambiar</button><button onclick="go('cat',{cat:'all',mode:'venta'})">Comprar</button><button onclick="go('donaciones')">Donar</button></div>
- <h3>Materiales destacados</h3>
- ${list.length?`<div class="grid">${list.map(m=>`<div class="gi" onclick="go('detail',{id:'${m.id}'})">${thumb(m)}<div class="t">${esc(m.title)}</div><div class="p" style="${m.mode==='donacion'?'color:var(--g)':''}">${priceTxt(m)}</div></div>`).join('')}</div>`:empty('🌱','Aún no hay materiales publicados.')}
+ ${prods.length?`<div style="display:flex;justify-content:space-between;align-items:baseline"><h3>Tienda Re-Bio</h3><button class="link" onclick="go('tienda')">Ver todo</button></div><div class="grid">${prods.slice(0,3).map(m=>`<div class="gi" onclick="go('detail',{id:'${m.id}'})">${thumb(m)}<div class="t">${esc(m.title)}</div><div class="p">${usd(m.price)}</div></div>`).join('')}</div>`:''}
+ <h3>Materiales de la comunidad</h3>
+ ${list.length?`<div class="grid">${list.map(m=>`<div class="gi" onclick="go('detail',{id:'${m.id}'})">${thumb(m)}<div class="t">${esc(m.title)}</div><div class="p">${priceTxt(m)}</div></div>`).join('')}</div>`:empty('🌱','Aún no hay materiales publicados.')}
  <div style="height:70px"></div></div>
  <button class="fab" onclick="go('publish')">＋ Publicar</button>${tabs('home')}`};
 
 /* P6 Lista de categoría */
 function filterList(arr,mode,sort){
- let r=arr.filter(m=>!mode||mode==='todas'||m.mode===mode);
+ let r=arr.filter(m=>!mode||mode==='todas'||(mode==='tienda'?m.product:(!m.product&&m.mode===mode)));
  r=sort==='precio'?r.sort((a,b)=>(a.mode==='venta'?a.price:-1)-(b.mode==='venta'?b.price:-1)):r.sort((a,b)=>b.created-a.created);
  return r;
 }
-function segHTML(cur,fn){return `<div class="seg">${[['todas','Todas'],['venta','Venta'],['intercambio','Intercambio'],['donacion','Donación']].map(([k,l])=>`<button class="${cur===k?'on':''}" onclick="${fn}('${k}')">${l}</button>`).join('')}</div>`}
+function segHTML(cur,fn,extra){return `<div class="seg">${[['todas','Todas'],['venta','Venta'],['intercambio','Intercambio'],...(extra||[])].map(([k,l])=>`<button class="${cur===k?'on':''}" onclick="${fn}('${k}')">${l}</button>`).join('')}</div>`}
 SCREENS.cat=p=>{
  const mode=p.mode||'todas',sort=p.sort||'recientes';
  const base=active().filter(m=>p.cat==='all'||m.cat===p.cat);
@@ -425,13 +445,13 @@ function setCatSort(s){NAV[NAV.length-1].p.sort=s;render()}
 SCREENS.search=p=>{
  const q=p.q||'',mode=p.mode||'todas';
  const nq=norm(q.trim());
- const base=active().filter(m=>!nq||norm(m.title+' '+m.desc+' '+cat(m.cat).n).includes(nq));
- const list=filterList(base,mode,'recientes');
+ const list=filterList(searchBase(nq),mode,'recientes');
  return `${hBrand()}<div style="padding:12px 16px 0"><div class="search">🔍 <input id="q" placeholder="Buscar materiales" value="${esc(q)}" oninput="searchType(this.value)" autofocus></div></div>
- ${segHTML(mode,'setSearchMode')}
+ ${segHTML(mode,'setSearchMode',[['tienda','Tienda Re-Bio']])}
  <div class="body np" id="sres">${resultsHTML(list,q)}</div>${tabs('search')}`};
 function resultsHTML(list,q){return list.length?`<div class="bar">${list.length} resultado${list.length===1?'':'s'}${q?` para “${esc(q)}”`:''}</div>`+list.map(rowItem).join(''):empty('🔍','No encontramos materiales con esa búsqueda.')}
-let sT;function searchType(v){NAV[NAV.length-1].p.q=v;clearTimeout(sT);sT=setTimeout(()=>{const p=NAV[NAV.length-1].p;const nq=norm(v.trim());const list=filterList(active().filter(m=>!nq||norm(m.title+' '+m.desc+' '+cat(m.cat).n).includes(nq)),p.mode||'todas');$('sres').innerHTML=resultsHTML(list,v)},150)}
+let sT;function searchType(v){NAV[NAV.length-1].p.q=v;clearTimeout(sT);sT=setTimeout(()=>{const p=NAV[NAV.length-1].p;const nq=norm(v.trim());const list=filterList(searchBase(nq),p.mode||'todas');$('sres').innerHTML=resultsHTML(list,v)},150)}
+function searchBase(nq){return [...active(),...shop().filter(m=>m.qty>0)].filter(m=>!nq||norm(m.title+' '+m.desc+' '+cat(m.cat).n+' '+(m.line||'')).includes(nq))}
 function setSearchMode(m){NAV[NAV.length-1].p.mode=m;render()}
 
 /* P7 Detalle */
@@ -440,57 +460,66 @@ SCREENS.detail=p=>{
  const o=user(m.owner),mine=m.owner==='me',c=centro(m.centro);
  const pics=m.photos.length?m.photos.map(s=>`<div><img src="${s}" alt=""></div>`).join(''):`<div>${m.icon}</div>`;
  let acts='';
- if(mine){
+ if(m.product){
+  acts=m.qty>0?`<button class="btn p" onclick="go('confirm',{id:'${m.id}'})">Comprar</button>`:`<div class="note w">Producto agotado. Pronto habrá más con nuevas donaciones.</div>`;
+  acts+=`<button class="btn" onclick="openChat('rebio','${m.id}')">Contactar a Re-Bio</button>`;
+ }else if(mine){
   acts=`<button class="btn" onclick="go('publish',{edit:'${m.id}'})">Editar</button>
   ${m.status==='activa'||m.status==='pausada'?`<button class="btn" onclick="togglePause('${m.id}')">${m.status==='pausada'?'Reactivar':'Pausar'} publicación</button>`:''}
   ${m.status!=='reservada'?`<button class="btn d" onclick="delMat('${m.id}')">Eliminar</button>`:''}`;
  }else if(m.status==='activa'){
   acts=m.mode==='venta'?`<button class="btn p" onclick="go('confirm',{id:'${m.id}'})">Comprar</button>`
-   :m.mode==='intercambio'?`<button class="btn p" onclick="go('pickswap',{id:'${m.id}'})">Proponer intercambio</button>`
-   :`<button class="btn p" onclick="go('confirm',{id:'${m.id}'})">Solicitar donación</button>`;
+   :`<button class="btn p" onclick="go('pickswap',{id:'${m.id}'})">Proponer intercambio</button>`;
   acts+=`<button class="btn" onclick="openChat('${m.owner}','${m.id}')">Contactar</button>`;
  }else{acts=`<div class="note w">Este material está ${m.status==='reservada'?'reservado':m.status==='pausada'?'pausado':'entregado'} y no admite nuevas solicitudes.</div><button class="btn" onclick="openChat('${m.owner}','${m.id}')">Contactar</button>`}
- return `${hBack('Material')}<div class="body np"><div class="hero">${pics}</div>
+ return `${hBack(m.product?'Producto Re-Bio':'Material')}<div class="body np"><div class="hero">${pics}</div>
  ${m.photos.length>1?`<div class="center xs mut" style="padding-top:6px">Desliza para ver ${m.photos.length} fotos</div>`:''}
  <div style="padding:14px 16px 24px">
- <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div style="font-size:20px;font-weight:700">${esc(m.title)}</div><div style="font-size:20px;font-weight:800;${m.mode==='donacion'?'color:var(--g)':''}">${priceTxt(m)}</div></div>
- <div>${modeTag(m)}${mine||m.status!=='activa'?stTag(m):''}<span class="tag">${cat(m.cat).n}</span></div>
+ <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div style="font-size:20px;font-weight:700">${esc(m.title)}</div><div style="font-size:20px;font-weight:800">${priceTxt(m)}</div></div>
+ <div>${modeTag(m)}${m.product||mine||m.status!=='activa'?stTag(m):''}<span class="tag">${m.product?esc(m.line):cat(m.cat).n}</span></div>
  <p style="margin:12px 0 6px;font-size:14px">${esc(m.desc)}</p>
+ ${m.product?productInfo(m):`
  <div class="kv"><span>Estado</span><span>${esc(m.cond)}</span></div>
  <div class="kv"><span>Modalidad</span><span>${MODES[m.mode]}</span></div>
  ${m.mode==='intercambio'&&m.want?`<div class="kv"><span>Busca a cambio</span><span>${esc(m.want)}</span></div>`:''}
  <div class="kv"><span>Cantidad</span><span>${qtyTxt(m)}</span></div>
  <div class="kv"><span>Peso aproximado</span><span>${kgf(m.kg)} kg</span></div>
  <div class="kv"><span>Punto de acopio</span><span><a href="#" onclick="event.preventDefault();go('centros',{sel:'${c.id}'})">${esc(c.n)}<br>${esc(c.u)}</a></span></div>
- <div class="kv"><span>Publicado</span><span>${dm(m.created)}</span></div>
- <div class="user" onclick="go('profile',{uid:'${o.id}'})"><div class="av">${ini(o.name)}</div><div style="flex:1"><b>${esc(o.name)}${mine?' (tú)':''}</b><div class="sm mut">Publicador desde ${o.since}</div><div class="sm mut">${S.mats.filter(x=>x.owner===o.id).length} publicaciones · ${o.ratings.length?stars(avg(o))+' '+avg(o).toFixed(1):'Sin calificaciones'}</div></div><span class="chev">›</span></div>
+ <div class="kv"><span>Publicado</span><span>${dm(m.created)}</span></div>`}
+ <div class="user" onclick="go('profile',{uid:'${o.id}'})"><div class="av">${ini(o.name)}</div><div style="flex:1"><b>${esc(o.name)}${mine?' (tú)':''}</b><div class="sm mut">${o.official?'Tienda oficial de la app':'Publicador desde '+o.since}</div><div class="sm mut">${S.mats.filter(x=>x.owner===o.id).length} publicaciones · ${o.ratings.length?stars(avg(o))+' '+avg(o).toFixed(1):'Sin calificaciones'}</div></div><span class="chev">›</span></div>
  ${acts}
- ${mine?'':`<div class="center"><button class="link" style="color:var(--mut)" onclick="go('report',{id:'${m.id}'})">Reportar publicación</button></div>`}
+ ${mine||m.product?'':`<div class="center"><button class="link" style="color:var(--mut)" onclick="go('report',{id:'${m.id}'})">Reportar publicación</button></div>`}
  </div></div>`};
+function productInfo(m){const c=centro(m.centro);const fr=(m.from||[]).map(don).filter(Boolean);
+ return `<div class="kv"><span>Línea</span><span>${esc(m.line)}</span></div>
+ <div class="kv"><span>Disponibles</span><span>${m.qty}</span></div>
+ <div class="kv"><span>Material reutilizado</span><span>${kgf(m.kg)} kg por unidad</span></div>
+ <div class="kv"><span>Retiro en</span><span><a href="#" onclick="event.preventDefault();go('centros',{sel:'${c.id}'})">${esc(c.n)}<br>${esc(c.u)}</a></span></div>
+ ${fr.length?`<h3>Hecho con donaciones de la comunidad</h3><div style="margin:0 -16px">${fr.map(donRow).join('')}</div>`:''}`}
 function togglePause(id){const m=mat(id);m.status=m.status==='pausada'?'activa':'pausada';render();toast(m.status==='pausada'?'Publicación pausada':'Publicación reactivada')}
 function delMat(id){if(!confirmInline(id))return;S.mats=S.mats.filter(m=>m.id!==id);back();toast('Publicación eliminada')}
 let delArm=null;function confirmInline(id){if(delArm===id){delArm=null;return true}delArm=id;toast('Pulsa “Eliminar” otra vez para confirmar');setTimeout(()=>{if(delArm===id)delArm=null},3000);return false}
 
 /* N4 Confirmar compra / solicitud */
 SCREENS.confirm=p=>{
- const m=mat(p.id),c=centro(m.centro),o=user(m.owner),isSale=m.mode==='venta';
- return `${hBack(isSale?'Confirmar compra':'Solicitar donación')}<div class="body">
- <div class="li" style="padding:0 0 12px;border-bottom:1px solid var(--line);cursor:default">${thumb(m)}<div class="mid"><div class="t">${esc(m.title)}</div><div class="s">${qtyTxt(m)} · ${esc(m.cond)}</div><div class="s">De ${esc(o.name)}</div></div></div>
+ const m=mat(p.id),c=centro(m.centro),o=user(m.owner),isSale=true;
+ return `${hBack('Confirmar compra')}<div class="body">
+ <div class="li" style="padding:0 0 12px;border-bottom:1px solid var(--line);cursor:default">${thumb(m)}<div class="mid"><div class="t">${esc(m.title)}</div><div class="s">${m.product?'1 unidad · Tienda Re-Bio':qtyTxt(m)+' · '+esc(m.cond)}</div><div class="s">De ${esc(o.name)}</div></div></div>
  <div class="kv"><span>${isSale?'Precio':'Costo'}</span><span style="font-weight:700;color:var(--ink)">${isSale?usd(m.price):'Gratis'}</span></div>
  <div class="kv"><span>Retiro en</span><span>${esc(c.n)}<br>${esc(c.u)}</span></div>
  <div class="kv"><span>Horario</span><span>${c.h}</span></div>
- <div class="note">${isSale?'El pago se acuerda directamente con quien vende (efectivo o transferencia) al momento de la entrega. Re-Bio no cobra comisiones.':'La donación es gratuita. Coordina el día del retiro por el chat.'}<br><br>Al confirmar, el material queda <b>reservado</b> para ti y se abre el chat.</div>
+ <div class="note">${m.product?'Pagas al retirar en el centro (efectivo o transferencia a Re-Bio). Lo recaudado financia la transformación de nuevas donaciones.':'El pago se acuerda directamente con quien vende (efectivo o transferencia) al momento de la entrega. Re-Bio no cobra comisiones.'}<br><br>Al confirmar, ${m.product?'una unidad queda <b>reservada</b>':'el material queda <b>reservado</b>'} para ti y se abre el chat.</div>
  <button class="btn p" onclick="createTx('${m.id}')">${isSale?'Confirmar compra':'Confirmar solicitud'}</button>
  <button class="btn" onclick="back()">Cancelar</button></div>`};
 function getChat(other,matId){let c=S.chats.find(c=>c.with===other&&c.mat===matId);if(!c){c={id:uid('ch'),with:other,mat:matId,msgs:[]};S.chats.unshift(c)}return c}
 function createTx(matId){
- const m=mat(matId);m.status='reservada';
+ const m=mat(matId);if(m.product){m.qty-=1}else m.status='reservada';
  const tx={id:uid('t'),type:m.mode,mats:[m.id],giver:m.owner,receiver:'me',other:m.owner,status:'reservada',code:String(1000+Math.floor(Math.random()*9000)),t:Date.now(),rated:false};
  S.txs.unshift(tx);
  const c=getChat(m.owner,m.id);c.tx=tx.id;
- c.msgs.push({f:'sys',x:(m.mode==='venta'?'Compra confirmada':'Donación solicitada')+': '+m.title+'. Material reservado.',t:Date.now()});
- replace('chat',{id:c.id});toast('Material reservado');
- setTimeout(()=>{c.msgs.push({f:m.owner,x:'¡Hola! Te lo puedo dejar en el '+centro(m.centro).n+'. ¿Te queda bien mañana?',t:Date.now()});notify(user(m.owner).name+' te escribió sobre '+m.title,['chat',{id:c.id}])},1500);
+ c.msgs.push({f:'sys',x:'Compra confirmada: '+m.title+'. '+(m.product?'Unidad reservada.':'Material reservado.'),t:Date.now()});
+ replace('chat',{id:c.id});toast(m.product?'Producto reservado':'Material reservado');
+ setTimeout(()=>{c.msgs.push({f:m.owner,x:m.product?'¡Gracias por tu compra! Tu producto estará listo en el centro '+centro(m.centro).n+' desde mañana.':'¡Hola! Te lo puedo dejar en el '+centro(m.centro).n+'. ¿Te queda bien mañana?',t:Date.now()});notify(user(m.owner).name+' te escribió sobre '+m.title,['chat',{id:c.id}])},1500);
 }
 
 /* N5 Elegir material para intercambio */
@@ -529,7 +558,8 @@ SCREENS.publish=p=>{
  const e=p.edit?mat(p.edit):null;
  DRAFT={photos:e?[...e.photos]:(DRAFT.keep?DRAFT.photos:[])};
  const v=(k,d='')=>e?e[k]:d;const mode=e?e.mode:(p.mode||'');
- return `${hBack(e?'Editar anuncio':'Publicar anuncio')}<div class="body">
+ return `${hBack(e?'Editar anuncio':mode==='donacion'?'Donar a Re-Bio':'Publicar anuncio')}<div class="body">
+ <div class="note" id="don-note" style="margin:0 0 12px;display:${mode==='donacion'?'block':'none'}">Las donaciones las recibe <b>Re-Bio</b> en el centro de acopio que elijas. Con ellas fabricamos productos sostenibles para la comunidad ESPOL.</div>
  <label class="f">Subir fotos <span class="mut xs">(hasta 4)</span></label>
  <div class="photos">${[0,1,2,3].map(i=>`<div class="slot" id="slot${i}" onclick="pickPhoto(${i})">${slotInner(i)}</div>`).join('')}</div>
  <input type="file" id="file" accept="image/*" hidden onchange="gotPhoto(this)">
@@ -537,7 +567,7 @@ SCREENS.publish=p=>{
  ${field('pb-cat','Categoría',`<select class="in" id="pb-cat"><option value="">Selecciona…</option>${CATS.map(c=>`<option value="${c.id}" ${(e?e.cat:p.cat)===c.id?'selected':''}>${c.n}</option>`).join('')}</select>`)}
  ${field('pb-desc','Descripción',`<textarea class="in" id="pb-desc" maxlength="300" oninput="$('cnt').textContent=this.value.length" placeholder="Medidas, estado, detalles útiles">${esc(v('desc'))}</textarea>`)}<div class="xs mut" style="text-align:right;margin-top:-14px"><span id="cnt">${v('desc').length}</span>/300</div>
  <div class="row2"><div>${field('pb-cond','Estado',`<select class="in" id="pb-cond"><option value="">…</option>${CONDS.map(c=>`<option ${v('cond')===c?'selected':''}>${c}</option>`).join('')}</select>`)}</div>
- <div>${field('pb-mode','Modalidad',`<select class="in" id="pb-mode" onchange="modeChange()"><option value="">…</option>${Object.entries(MODES).map(([k,l])=>`<option value="${k}" ${mode===k?'selected':''}>${l}</option>`).join('')}</select>`)}</div></div>
+ <div>${field('pb-mode','Modalidad',`<select class="in" id="pb-mode" onchange="modeChange()"><option value="">…</option>${Object.entries(MODES).filter(([k])=>!e||k!=='donacion').map(([k,l])=>`<option value="${k}" ${mode===k?'selected':''}>${l}</option>`).join('')}</select>`)}</div></div>
  <div id="w-price" style="display:${mode==='venta'?'block':'none'}">${field('pb-price','Precio (USD)',`<div class="money"><span>$</span><input class="in" id="pb-price" type="number" min="0.25" step="0.25" inputmode="decimal" value="${e&&e.mode==='venta'?e.price:''}" placeholder="0.00"></div>`)}</div>
  <div id="w-want" style="display:${mode==='intercambio'?'block':'none'}">${field('pb-want','¿Qué buscas a cambio? (opcional)',`<input class="in" id="pb-want" value="${esc(v('want'))}" placeholder="Ej.: herramientas o madera">`)}</div>
  <div class="row2"><div>${field('pb-qty','Cantidad',`<input class="in" id="pb-qty" type="number" min="1" step="1" value="${v('qty',1)}">`)}</div>
@@ -545,13 +575,13 @@ SCREENS.publish=p=>{
  ${field('pb-kg','Peso aproximado (kg)',`<input class="in" id="pb-kg" type="number" min="0.1" step="0.1" inputmode="decimal" value="${v('kg','')}" placeholder="Sirve para calcular tu impacto">`)}
  ${field('pb-cen','Punto de acopio',`<select class="in" id="pb-cen"><option value="">Selecciona…</option>${CENTROS.map(c=>`<option value="${c.id}" ${v('centro',centroDeCarrera(S.users.me.carrera))===c.id?'selected':''}>${c.n} — ${c.u}</option>`).join('')}</select>`)}
  <div><button class="link" style="padding-left:0" onclick="go('centros')">Ver centros en el mapa</button></div>
- <button class="btn p" onclick="doPublish('${e?e.id:''}')">${e?'Guardar cambios':'Publicar'}</button><div style="height:20px"></div></div>`};
+ <button class="btn p" id="pb-go" onclick="doPublish('${e?e.id:''}')">${e?'Guardar cambios':mode==='donacion'?'Registrar donación':'Publicar'}</button><div style="height:20px"></div></div>`};
 function slotInner(i){const s=DRAFT.photos[i];return s?`<img src="${s}" alt=""><button class="x" aria-label="Quitar foto" onclick="event.stopPropagation();rmPhoto(${i})">✕</button>`:'＋'}
 function refreshSlots(){[0,1,2,3].forEach(i=>{const el=$('slot'+i);if(el)el.innerHTML=slotInner(i)})}
 let slotI=0;function pickPhoto(i){slotI=Math.min(i,DRAFT.photos.length);$('file').click()}
 function rmPhoto(i){DRAFT.photos.splice(i,1);refreshSlots()}
 function gotPhoto(inp){const f=inp.files[0];inp.value='';if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,560/Math.max(im.width,im.height));const cv=document.createElement('canvas');cv.width=im.width*k;cv.height=im.height*k;cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);DRAFT.photos[slotI]=cv.toDataURL('image/jpeg',.6);refreshSlots()};im.src=r.result};r.readAsDataURL(f)}
-function modeChange(){const m=val('pb-mode');$('w-price').style.display=m==='venta'?'block':'none';$('w-want').style.display=m==='intercambio'?'block':'none'}
+function modeChange(){const m=val('pb-mode');$('w-price').style.display=m==='venta'?'block':'none';$('w-want').style.display=m==='intercambio'?'block':'none';$('don-note').style.display=m==='donacion'?'block':'none';const b=$('pb-go');if(b&&!b.textContent.startsWith('Guardar'))b.textContent=m==='donacion'?'Registrar donación':'Publicar'}
 function doPublish(editId){
  const g=k=>val(k).trim();const mode=g('pb-mode');
  let ok=setErr('pb-name',g('pb-name').length>=3?'':'Escribe el nombre del material');
@@ -565,16 +595,67 @@ function doPublish(editId){
  if(!ok){document.querySelector('.in.bad')?.scrollIntoView({block:'center'});return toast('Revisa los campos marcados')}
  const data={title:g('pb-name'),cat:g('pb-cat'),desc:g('pb-desc')||'Sin descripción.',cond:g('pb-cond'),mode,price:mode==='venta'?Math.round(Number(g('pb-price'))*100)/100:0,want:mode==='intercambio'?g('pb-want'):'',qty:Number(g('pb-qty')),unit:g('pb-unit'),kg:Number(g('pb-kg')),centro:g('pb-cen'),photos:DRAFT.photos.filter(Boolean)};
  if(editId){Object.assign(mat(editId),data);back();toast('Cambios guardados');return}
+ if(mode==='donacion'){const dn={id:uid('d'),donor:'me',title:data.title,cat:data.cat,qty:data.qty,unit:data.unit,kg:data.kg,centro:data.centro,icon:cat(data.cat).i,status:'por_entregar',product:null,cond:data.cond,desc:data.desc,photos:data.photos,t:Date.now(),code:String(1000+Math.floor(Math.random()*9000))};
+  S.dons.unshift(dn);DRAFT={photos:[]};NAV=[{s:'home',p:{}},{s:'donaciones',p:{tab:'mias'}}];go('don',{id:dn.id});toast('Donación registrada. Llévala al centro '+centro(dn.centro).n);return}
  const m={id:uid('m'),owner:'me',status:'activa',created:Date.now(),icon:cat(data.cat).i,...data};
  S.mats.unshift(m);DRAFT={photos:[]};reset('profile');toast('¡Publicado! Ya es visible para la comunidad ESPOL');
 }
 
-/* P9 Donaciones */
+/* P9 Donaciones a Re-Bio */
+const donRow=x=>{const u=user(x.donor);return `<div class="li" onclick="go('don',{id:'${x.id}'})"><div class="th" style="width:56px;height:56px;border-radius:10px;font-size:26px">${x.photos&&x.photos[0]?`<img src="${x.photos[0]}" alt="">`:x.icon}</div><div class="mid"><div class="t">${esc(x.title)}</div><div class="s">${x.donor==='me'?'Tu donación':'Donó '+esc(u.name.split(' ')[0])} · ${qtyTxt(x)} · ${centro(x.centro).n}</div><div>${dTag(x)}</div></div><span class="chev">›</span></div>`};
 SCREENS.donaciones=p=>{
- const c=p.cat||'';const list=active().filter(m=>m.mode==='donacion'&&(!c||m.cat===c)).sort((a,b)=>b.created-a.created);
- return `${hBack('Donaciones')}<div class="bar">Categoría: <select onchange="NAV[NAV.length-1].p.cat=this.value;render()"><option value="">Todas</option>${CATS.map(x=>`<option value="${x.id}" ${c===x.id?'selected':''}>${x.n}</option>`).join('')}</select></div>
- <div class="body np">${list.length?list.map(m=>`<div class="li" onclick="go('detail',{id:'${m.id}'})">${thumb(m)}<div class="mid"><div class="t">${esc(m.title)}</div><div class="s">${esc(m.cond)}</div><div class="s">${esc(centro(m.centro).u)}</div></div></div>`).join(''):empty('🎁','No hay donaciones disponibles en esta categoría.')}</div>
+ const tab=p.tab||'mias';
+ const mine=S.dons.filter(x=>x.donor==='me').sort((a,b)=>b.t-a.t);
+ const com=S.dons.filter(x=>x.donor!=='me'&&x.status!=='por_entregar').sort((a,b)=>b.t-a.t);
+ const totKg=S.dons.filter(x=>x.status!=='por_entregar').reduce((a,x)=>a+x.kg,0);
+ const L=tab==='mias'?mine:com;
+ return `${hBack('Donar a Re-Bio')}<div class="body np">
+ <div style="padding:16px 16px 4px"><div class="note" style="margin:0"><b style="color:var(--ink)">¿Qué pasa con lo que donas?</b><br>1. Registras tu donación.<br>2. La entregas en el centro de acopio de tu facultad.<br>3. Re-Bio la transforma en productos sostenibles para estudiantes, que se ofrecen en la <a href="#" style="color:var(--g)" onclick="event.preventDefault();go('tienda')">Tienda Re-Bio</a>.</div>
+ <div class="stat" style="margin-top:12px"><span>La comunidad ha donado</span><div style="text-align:right"><b>${kgf(totKg)}</b><div class="sm">kg</div></div></div></div>
+ <div class="seg" style="border-top:1px solid var(--line);margin-top:12px">${[['mias','Mis donaciones'],['comunidad','Comunidad']].map(([k,l])=>`<button class="${tab===k?'on':''}" onclick="NAV[NAV.length-1].p.tab='${k}';render()">${l}</button>`).join('')}</div>
+ ${L.length?L.map(donRow).join(''):empty('🎁',tab==='mias'?'Aún no has donado materiales.':'Todavía no hay donaciones recibidas.')}</div>
  <div style="padding:10px 16px 14px;border-top:1px solid var(--line)"><button class="btn p" style="margin:0" onclick="go('publish',{mode:'donacion'})">Donar un material</button></div>`};
+
+/* Detalle de una donación */
+SCREENS.don=p=>{
+ const x=don(p.id);if(!x)return `${hBack('Donación')}${empty('❓','Esta donación ya no existe.')}`;
+ const c=centro(x.centro),u=user(x.donor),mine=x.donor==='me',idx=DSTEPS.indexOf(x.status),pr=x.product?mat(x.product):null;
+ const steps=DSTEPS.map((k,i)=>`<div style="display:flex;gap:10px;align-items:center;padding:6px 0;${i<=idx?'':'opacity:.45'}"><div style="width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;background:${i<=idx?'var(--g)':'var(--ph)'};color:${i<=idx?'#fff':'var(--mut)'}">${i<idx?'✓':i+1}</div><div style="font-size:14px;${i===idx?'font-weight:700':''}">${DST[k][0]}</div></div>`).join('');
+ return `${hBack('Donación')}<div class="body">
+ <div class="th" style="width:150px;height:150px;border-radius:14px;font-size:64px;margin:0 auto">${x.photos&&x.photos[0]?`<img src="${x.photos[0]}" alt="">`:x.icon}</div>
+ <div style="font-size:20px;font-weight:700;margin-top:12px">${esc(x.title)}</div><div>${dTag(x)}<span class="tag">${cat(x.cat).n}</span></div>
+ ${x.desc?`<p style="margin:10px 0 0;font-size:14px">${esc(x.desc)}</p>`:''}
+ <div class="kv" style="margin-top:8px"><span>Donante</span><span>${mine?'Tú':esc(u.name)}</span></div>
+ <div class="kv"><span>Recibe</span><span>Re-Bio</span></div>
+ <div class="kv"><span>Cantidad</span><span>${qtyTxt(x)}</span></div>
+ <div class="kv"><span>Peso aproximado</span><span>${kgf(x.kg)} kg</span></div>
+ <div class="kv"><span>Centro de acopio</span><span><a href="#" onclick="event.preventDefault();go('centros',{sel:'${c.id}'})">${esc(c.n)}<br>${esc(c.u)}</a></span></div>
+ <div class="kv"><span>Registrada</span><span>${dm(x.t)}</span></div>
+ <h3>Seguimiento</h3>${steps}
+ ${pr?`<h3>Se convirtió en</h3><div style="margin:0 -16px">${rowItem(pr)}</div>`:''}
+ ${mine&&x.status==='por_entregar'?`<h3>Entregar en el centro</h3>
+ <p class="sm mut">Lleva el material a ${esc(c.n)} (${c.h}) y muestra este código. El personal del centro lo ingresa para confirmar que Re-Bio lo recibió.</p>
+ <div class="code">${x.code}</div>
+ ${field('dcode','Código (lo ingresa el personal del centro)','<input class="in" id="dcode" inputmode="numeric" maxlength="4" placeholder="0000">')}
+ <button class="btn p" onclick="receiveDon('${x.id}')">Confirmar recepción</button>
+ <button class="btn d" onclick="cancelDon('${x.id}')">Cancelar donación</button>`:''}
+ ${x.status==='recibida'||x.status==='transformacion'?`<div class="note">Re-Bio decide qué fabricar según los materiales que llegan. Te avisaremos cuando tu donación se convierta en un producto.</div>`:''}
+ <div style="height:12px"></div></div>`};
+function receiveDon(id){
+ const x=don(id);if(!setErr('dcode',val('dcode').trim()===x.code?'':'El código no coincide'))return;
+ x.status='recibida';x.got=Date.now();S.users.me.kg+=x.kg;render();toast('¡Gracias! Re-Bio recibió tu donación. +'+kgf(x.kg)+' kg a tu impacto');
+ setTimeout(()=>{if(x.status==='recibida'){x.status='transformacion';notify('Re-Bio está transformando tu donación: '+x.title,['don',{id}])}},6000);
+}
+function cancelDon(id){if(!confirmInline('don'+id))return;S.dons=S.dons.filter(x=>x.id!==id);back();toast('Donación cancelada')}
+
+/* Tienda Re-Bio */
+SCREENS.tienda=p=>{
+ const lines=[...new Set(shop().map(m=>m.line))];const ln=p.line||'todas';
+ const list=shop().filter(m=>ln==='todas'||m.line===ln).sort((a,b)=>(b.qty>0)-(a.qty>0));
+ return `${hBack('Tienda Re-Bio')}<div class="seg">${[['todas','Todas'],...lines.map(l=>[l,l])].map(([k,l])=>`<button class="${ln===k?'on':''}" onclick="NAV[NAV.length-1].p.line='${k}';render()">${l}</button>`).join('')}</div>
+ <div class="body"><p class="sm mut" style="margin-bottom:14px">Productos hechos por Re-Bio con las donaciones de la comunidad ESPOL. Se pagan al retirarlos en el centro de acopio.</p>
+ ${list.length?`<div class="grid" style="grid-template-columns:repeat(2,1fr);gap:14px">${list.map(m=>`<div class="gi" onclick="go('detail',{id:'${m.id}'})">${thumb(m)}<div class="t" style="font-size:14px;white-space:normal">${esc(m.title)}</div><div class="p" style="font-size:14px">${usd(m.price)}</div><div class="xs mut">${m.qty>0?m.qty+' disponible'+(m.qty===1?'':'s'):'Agotado'} · ${kgf(m.kg)} kg reutilizados</div></div>`).join('')}</div>`:empty('🛍️','No hay productos en esta línea por ahora.')}
+ <div class="note" style="margin-top:18px">¿Tienes materiales que ya no usas? <a href="#" style="color:var(--g)" onclick="event.preventDefault();go('donaciones')">Dónalos a Re-Bio</a> y ayuda a crear nuevos productos.</div></div>`};
 
 /* P10 Mis intercambios */
 SCREENS.swaps=p=>{
@@ -607,8 +688,7 @@ SCREENS.centros=p=>{
  <ellipse cx="128" cy="160" rx="30" ry="15" fill="#cfe3ee"/><text x="128" y="163" text-anchor="middle" font-size="8" fill="#5c7f93">Lago</text>
  ${CENTROS.map(blk).join('')}</svg>
  <div class="xs mut" style="position:absolute;left:8px;bottom:4px">Esquema ilustrativo, no a escala · <a href="${MAPA_OFICIAL}" target="_blank" rel="noopener" style="color:var(--g)">Mapa oficial ESPOL</a></div></div>
- <div class="body np">${CENTROS.map((c,i)=>`<div class="li ${sel===c.id?'sel':''}" onclick="${pick(c.id)}"><div class="th" style="width:48px;height:48px;border-radius:50%;font-size:18px;font-weight:700;background:${sel===c.id?'var(--g)':'var(--ph)'};color:${sel===c.id?'#fff':'var(--ink)'}">${i+1}</div><div class="mid"><div class="t">${c.n} <span class="mut" style="font-weight:400">· ${c.f}</span></div><div class="s" style="white-space:normal">${c.a}</div><div class="s">${c.h}</div>${sel===c.id?`<a class="btn" style="margin-top:8px;padding:8px;text-decoration:none;color:var(--ink)" href="${rutaURL(c)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Cómo llegar (Google Maps)</a>`:''}</div></div>`).join('')}
- <div class="note" style="margin:12px 16px">Cada asociación de estudiantes funciona como centro de acopio y punto de encuentro de su facultad. Los horarios son referenciales: confírmalos con la asociación.</div></div>`};
+ <div class="body np">${CENTROS.map((c,i)=>`<div class="li ${sel===c.id?'sel':''}" onclick="${pick(c.id)}"><div class="th" style="width:48px;height:48px;border-radius:50%;font-size:18px;font-weight:700;background:${sel===c.id?'var(--g)':'var(--ph)'};color:${sel===c.id?'#fff':'var(--ink)'}">${i+1}</div><div class="mid"><div class="t">${c.n} <span class="mut" style="font-weight:400">· ${c.f}</span></div><div class="s" style="white-space:normal">${c.a}</div><div class="s">${c.h}</div>${sel===c.id?`<a class="btn" style="margin-top:8px;padding:8px;text-decoration:none;color:var(--ink)" href="${rutaURL(c)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Cómo llegar (Google Maps)</a>`:''}</div></div>`).join('')}</div>`};
 
 /* N6 Bandeja de mensajes */
 SCREENS.inbox=()=>{
@@ -620,7 +700,7 @@ function openChat(other,matId){const c=getChat(other,matId);go('chat',{id:c.id})
 const REPLIES=['Perfecto, ahí nos vemos.','Claro, sin problema.','¿Te parece en la mañana?','Listo, te aviso cuando lo deje en el centro.','Gracias por escribir 😊'];
 SCREENS.chat=p=>{
  const c=S.chats.find(x=>x.id===p.id),u=user(c.with),m=mat(c.mat),tx=S.txs.find(t=>t.id===c.tx);
- const role=m?(m.owner==='me'?'Interesado/a':m.mode==='venta'?'Vende':m.mode==='donacion'?'Dona':'Intercambia'):'';
+ const role=u.official?'Tienda oficial':m?(m.owner==='me'?'Interesado/a':m.mode==='venta'?'Vende':'Intercambia'):'';
  setTimeout(()=>{const b=$('msgs');if(b)b.scrollTop=b.scrollHeight},0);
  return `<div class="hdr"><button class="ib" aria-label="Atrás" onclick="back()">←</button><div class="av s">${ini(u.name)}</div><div style="flex:1;min-width:0"><div style="font-weight:600;cursor:pointer" onclick="go('profile',{uid:'${u.id}'})">${esc(u.name)}</div><div class="xs" style="color:var(--g)">En línea · ${role}</div></div><button class="ib" aria-label="Menú" onclick="openMenu()">☰</button></div>
  ${m?`<div class="matbar" onclick="go('detail',{id:'${m.id}'})">${thumb(m)}<div style="flex:1;min-width:0"><b>${esc(m.title)}</b><div class="mut">${priceTxt(m)} · ${stTag(m)}</div></div>${tx&&tx.status==='reservada'?`<button class="btn p" onclick="event.stopPropagation();go('retiro',{tx:'${tx.id}'})">Coordinar retiro</button>`:tx&&tx.status==='entregada'&&!tx.rated?`<button class="btn p" onclick="event.stopPropagation();go('rate',{tx:'${tx.id}'})">Calificar</button>`:''}</div>`:''}
@@ -653,14 +733,14 @@ function confirmDelivery(id){
  const tx=S.txs.find(t=>t.id===id);
  if(!setErr('code',val('code').trim()===tx.code?'':'El código no coincide'))return;
  tx.status='entregada';tx.done=Date.now();
- const kg=tx.mats.map(mat).filter(Boolean).reduce((a,m)=>{m.status='entregada';return a+m.kg},0);
+ const kg=tx.mats.map(mat).filter(Boolean).reduce((a,m)=>{if(!m.product)m.status='entregada';return a+m.kg},0);
  tx.kg=kg;S.users.me.kg+=kg;S.users[tx.other].kg+=kg;
  if(tx.prop){const pr=S.props.find(p=>p.id===tx.prop);if(pr)pr.status='completada'}
  const c=S.chats.find(x=>x.tx===id);if(c)c.msgs.push({f:'sys',x:'Entrega confirmada en el centro de acopio.',t:Date.now()});
  replace('rate',{tx:id});
 }
 function cancelTx(id){
- const tx=S.txs.find(t=>t.id===id);tx.status='cancelada';tx.mats.map(mat).filter(Boolean).forEach(m=>m.status='activa');
+ const tx=S.txs.find(t=>t.id===id);tx.status='cancelada';tx.mats.map(mat).filter(Boolean).forEach(m=>{if(m.product)m.qty+=1;else m.status='activa'});
  if(tx.prop){const pr=S.props.find(p=>p.id===tx.prop);if(pr)pr.status='cancelada'}
  const c=S.chats.find(x=>x.tx===id);if(c){c.msgs.push({f:'sys',x:'Reserva cancelada. El material vuelve a estar disponible.',t:Date.now()});c.tx=null}
  back();toast('Reserva cancelada');
@@ -683,12 +763,14 @@ function sendRate(id){const tx=S.txs.find(t=>t.id===id);S.users[tx.other].rating
 SCREENS.profile=p=>{
  const id=p.uid||'me',u=user(id),own=id==='me';
  const pubs=S.mats.filter(m=>m.owner===id&&(own||m.status==='activa'));
+ if(u.official)return `${hBack('Re-Bio')}<div class="body"><div style="display:flex;gap:16px;align-items:center"><div class="av l">🌱</div><div><div style="font-size:20px;font-weight:700">Re-Bio</div><div class="mut sm">${esc(u.carrera)}</div><div style="margin-top:6px">${stars(avg(u))} <span class="sm mut">${avg(u).toFixed(1)} (${u.ratings.length})</span></div></div></div><button class="btn p" onclick="go('tienda')">Ver Tienda Re-Bio</button><button class="btn" onclick="go('donaciones')">Donar a Re-Bio</button></div>`;
  const a=avg(u);
  return `${own&&NAV.length===1?hBrand():hBack(own?'Mi perfil':'Perfil')}<div class="body">
  <div style="display:flex;gap:16px;align-items:center"><div class="av l">${ini(u.name)}</div><div><div style="font-size:20px;font-weight:700">${esc(u.name)}</div><div class="mut">${esc(u.carrera)}${facDe(u.carrera)?' · '+facDe(u.carrera).s:''}</div><div class="sm" style="margin-top:6px">Calificación</div><div>${stars(a)} <span class="sm mut">${u.ratings.length?a.toFixed(1)+' ('+u.ratings.length+')':'Sin calificaciones'}</span></div></div></div>
  <div class="stat"><span>Materiales reutilizados</span><div style="text-align:right"><b>${kgf(u.kg)}</b><div class="sm">kg</div></div></div>
  <h3>${own?'Mis publicaciones':'Publicaciones activas'}</h3>
  ${pubs.length?`<div style="margin:0 -16px">${pubs.map(m=>`<div class="li" onclick="go('detail',{id:'${m.id}'})">${thumb(m)}<div class="mid"><div class="t">${esc(m.title)}</div><div>${modeTag(m)}${own?stTag(m):''}</div></div><span class="chev">›</span></div>`).join('')}</div>`:empty('📦',own?'Aún no publicas materiales.':'No tiene publicaciones activas.',own?`<button class="btn p" style="margin-top:14px" onclick="go('publish')">Publicar mi primer material</button>`:'')}
+ ${own?`<h3>Mis donaciones a Re-Bio</h3>${S.dons.filter(x=>x.donor==='me').length?`<div style="margin:0 -16px">${S.dons.filter(x=>x.donor==='me').slice(0,3).map(donRow).join('')}</div>`:''}<button class="btn" onclick="go('donaciones',{tab:'mias'})">${S.dons.some(x=>x.donor==='me')?'Ver todas mis donaciones':'Donar un material'}</button>`:''}
  ${own?`<h3>Cuenta</h3><div style="margin:0 -16px"><div class="li" onclick="go('swaps')"><div class="mid"><div class="t">⇄ Mis intercambios</div></div><span class="chev">›</span></div><div class="li" onclick="go('settings')"><div class="mid"><div class="t">⚙️ Configuración</div></div><span class="chev">›</span></div></div>`:''}
  <div style="height:16px"></div></div>${own&&NAV.length===1?tabs('profile'):''}`};
 
