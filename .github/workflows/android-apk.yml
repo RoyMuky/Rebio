@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -43,3 +46,12 @@ jobs:
         with:
           name: Re-Bio-APK
           path: Re-Bio.apk
+
+      - name: Publicar APK con enlace directo (Releases)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete apk-latest --yes --cleanup-tag || true
+          gh release create apk-latest Re-Bio.apk \
+            --title "Re-Bio APK (última versión)" \
+            --notes "Prototipo de prueba de Re-Bio para Android 7 o superior. Descarga Re-Bio.apk en el teléfono e instálalo permitiendo apps desconocidas. Compilado del commit ${{ github.sha }}."

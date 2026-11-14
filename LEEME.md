@@ -6,6 +6,9 @@ No usa servidor: los datos se guardan solo en el teléfono donde se instala.
 - Cuenta de prueba: `demo@espol.edu.ec` · contraseña `rebio123`
 - Código de verificación al crear cuenta: `123456`
 
+**Descargar el APK (Android):** https://github.com/RoyMuky/Rebio/releases/download/apk-latest/Re-Bio.apk  
+Se actualiza solo cada vez que se sube un cambio a la rama `main`.
+
 ---
 
 ## Opción A · APK de Android sin instalar nada (recomendada)
