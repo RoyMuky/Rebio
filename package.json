@@ -1,0 +1,21 @@
+{
+  "name": "re-bio",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Re-Bio: prototipo móvil para la comunidad ESPOL (compra, donación e intercambio de materiales reutilizables).",
+  "scripts": {
+    "android:add": "cap add android",
+    "android:sync": "cap sync android",
+    "android:icons": "capacitor-assets generate --android",
+    "android:open": "cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/core": "^8.6.2"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^4.0.0",
+    "@capacitor/cli": "^8.6.2"
+  }
+}

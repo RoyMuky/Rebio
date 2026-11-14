@@ -1,0 +1,6 @@
+{
+  "appId": "ec.espol.rebio",
+  "appName": "Re-Bio",
+  "webDir": "www",
+  "android": { "allowMixedContent": false }
+}

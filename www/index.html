@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Re-Bio · prototipo</title>
+<meta name="theme-color" content="#2f7d4f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Re-Bio">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<style>
+:root{--g:#2f7d4f;--gl:#e7f2ea;--ink:#1d1d1f;--mut:#6b6b70;--line:#dcdce0;--bg:#f5f5f6;--ph:#ececee;--warn:#9a5b00;--wl:#fbf0dc;--bad:#b3261e}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#d9d9de;color:var(--ink);display:flex;align-items:center;justify-content:center;min-height:100vh;-webkit-tap-highlight-color:transparent}
+.phone{width:390px;height:min(844px,96vh);background:#fff;border-radius:38px;border:10px solid #1d1d1f;overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+@media (max-width:500px){body{background:#fff;display:block}.phone{width:100%;height:100vh;height:100dvh;border:0;border-radius:0;box-shadow:none}}
+#app{flex:1;display:flex;flex-direction:column;min-height:0;position:relative;padding-top:var(--safe-area-inset-top,env(safe-area-inset-top,0px))}
+button{font:inherit;color:inherit}
+.hdr{display:flex;align-items:center;gap:6px;padding:12px 12px 12px 16px;border-bottom:1px solid var(--line);min-height:58px;background:#fff;flex-shrink:0}
+.hdr h1{font-size:18px;font-weight:600;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand{font-size:19px;font-weight:700;flex:1;color:var(--g)}
+.ib{background:none;border:0;font-size:21px;width:38px;height:38px;display:grid;place-items:center;cursor:pointer;border-radius:10px;position:relative;flex-shrink:0}
+.ib:active{background:var(--ph)}
+.badge-n{position:absolute;top:3px;right:2px;background:var(--bad);color:#fff;font-size:10px;font-weight:700;border-radius:9px;min-width:16px;height:16px;line-height:16px;padding:0 4px}
+.body{flex:1;overflow-y:auto;padding:16px;min-height:0;position:relative}
+.body.np{padding:0}
+h2{font-size:22px;font-weight:700;margin:6px 0 18px}
+h3{font-size:16px;font-weight:600;margin:18px 0 10px}
+.mut{color:var(--mut)}.sm{font-size:13px}.xs{font-size:12px}
+label.f{display:block;font-size:14px;font-weight:500;margin:14px 0 6px}
+input.in,select.in,textarea.in{width:100%;border:1px solid #bfbfc4;border-radius:10px;padding:12px;font:inherit;font-size:15px;background:#fff;color:var(--ink)}
+textarea.in{min-height:84px;resize:vertical}
+.in:focus{outline:2px solid var(--g);border-color:var(--g)}
+.in.bad{border-color:var(--bad)}
+.err{color:var(--bad);font-size:12px;min-height:0;margin-top:4px}
+.pw{position:relative}.pw .eye{position:absolute;right:6px;top:50%;transform:translateY(-50%)}
+.btn{display:block;width:100%;padding:13px;border-radius:10px;border:1px solid #9d9da3;background:#fff;font-size:15px;font-weight:600;cursor:pointer;text-align:center;margin-top:10px}
+.btn.p{background:var(--g);border-color:var(--g);color:#fff}
+.btn.d{color:var(--bad);border-color:#e3b4b0}
+.btn:disabled{opacity:.45;cursor:default}
+.btn:active:not(:disabled){filter:brightness(.93)}
+.link{background:none;border:0;color:var(--g);text-decoration:underline;font-size:14px;cursor:pointer;padding:6px}
+.center{text-align:center}
+.row2{display:flex;gap:10px}.row2>*{flex:1}
+.search{display:flex;align-items:center;gap:8px;border:1px solid #bfbfc4;border-radius:10px;padding:10px 12px;color:var(--mut);cursor:text;background:#fff}
+.search input{border:0;outline:0;font:inherit;font-size:15px;flex:1;background:none;color:var(--ink)}
+.banner{margin-top:14px;border-radius:14px;background:var(--ph);height:150px;position:relative;overflow:hidden;cursor:pointer;display:flex;align-items:flex-end}
+.banner .big{position:absolute;right:18px;top:16px;font-size:72px;opacity:.75}
+.banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.55}
+.banner .tx{position:relative;padding:14px}
+.banner b{font-size:17px;display:block}
+.quick{display:flex;gap:8px;margin-top:12px}
+.quick button{flex:1;padding:10px 4px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-size:13px;font-weight:600;cursor:pointer}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.gi{cursor:pointer;min-width:0}
+.gi .th{aspect-ratio:1;border-radius:10px}
+.gi .t{font-size:12.5px;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gi .p{font-size:12.5px;font-weight:700}
+.th{background:var(--ph);display:grid;place-items:center;font-size:30px;overflow:hidden;flex-shrink:0;border:1px solid #e2e2e5}
+.th img{width:100%;height:100%;object-fit:cover}
+.li{display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);cursor:pointer;align-items:center;background:#fff}
+.li:active{background:var(--bg)}
+.li .th{width:64px;height:64px;border-radius:10px;font-size:28px}
+.li .mid{flex:1;min-width:0}
+.li .t{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.li .s{font-size:13px;color:var(--mut);margin-top:2px}
+.li .r{font-weight:700;font-size:14px;text-align:right;flex-shrink:0}
+.chev{color:var(--mut);font-size:20px}
+.price{color:var(--ink)}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--ph);color:var(--ink);margin-right:4px;margin-top:4px}
+.tag.don{background:var(--gl);color:var(--g)}
+.tag.res{background:var(--wl);color:var(--warn)}
+.tag.ok{background:#e6eefb;color:#2456a6}
+.seg{display:flex;gap:6px;padding:12px 16px;border-bottom:1px solid var(--line);overflow-x:auto;flex-shrink:0;background:#fff}
+.seg button{flex:1;padding:9px 10px;border-radius:9px;border:1px solid #bfbfc4;background:#fff;font-size:13px;cursor:pointer;white-space:nowrap}
+.seg button.on{background:#dedee2;border-color:#9d9da3;font-weight:700}
+.bar{display:flex;align-items:center;gap:8px;padding:8px 16px;font-size:13px;color:var(--mut);background:var(--bg);border-bottom:1px solid var(--line);flex-shrink:0}
+.bar select{border:0;background:none;font:inherit;color:var(--ink);font-weight:600}
+.empty{text-align:center;color:var(--mut);padding:48px 24px}
+.empty .e{font-size:44px;margin-bottom:10px}
+.hero{height:230px;background:var(--ph);display:flex;overflow-x:auto;scroll-snap-type:x mandatory}
+.hero>div{min-width:100%;height:100%;display:grid;place-items:center;font-size:90px;scroll-snap-align:start}
+.hero img{width:100%;height:100%;object-fit:cover}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.kv span:first-child{font-weight:500}
+.kv span:last-child{color:var(--mut);text-align:right}
+.kv a{color:var(--g)}
+.vk{padding:10px 0;border-bottom:1px solid var(--line);font-size:15px}
+.vk div:first-child{font-size:13px;color:var(--mut)}
+.user{display:flex;gap:12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:12px;margin-top:14px;cursor:pointer}
+.av{width:52px;height:52px;border-radius:50%;background:#d4e6da;color:var(--g);display:grid;place-items:center;font-weight:700;font-size:18px;flex-shrink:0}
+.av.s{width:38px;height:38px;font-size:14px}
+.av.l{width:88px;height:88px;font-size:30px}
+.stars{color:#c78a00;letter-spacing:1px}
+.note{background:var(--bg);border-radius:10px;padding:12px;font-size:13px;color:var(--mut);margin-top:12px}
+.note.w{background:var(--wl);color:var(--warn)}
+.photos{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.slot{aspect-ratio:1;border:1.5px dashed #a8a8ae;border-radius:10px;display:grid;place-items:center;font-size:26px;color:var(--mut);cursor:pointer;position:relative;overflow:hidden;background:#fff}
+.slot img{width:100%;height:100%;object-fit:cover}
+.slot .x{position:absolute;top:3px;right:3px;background:rgba(0,0,0,.6);color:#fff;border:0;border-radius:50%;width:22px;height:22px;font-size:13px;cursor:pointer}
+.money{position:relative}.money span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mut)}.money input{padding-left:26px}
+.fab{position:absolute;right:16px;bottom:78px;background:var(--g);color:#fff;border:0;border-radius:28px;padding:14px 18px;font-weight:700;font-size:15px;box-shadow:0 4px 14px rgba(0,0,0,.25);cursor:pointer;z-index:5}
+.tabs{display:flex;border-top:1px solid var(--line);background:#fff;flex-shrink:0;padding-bottom:env(safe-area-inset-bottom)}
+.tabs button{flex:1;background:none;border:0;padding:8px 0 10px;font-size:11px;color:var(--mut);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;position:relative}
+.tabs button .i{font-size:20px}
+.tabs button.on{color:var(--g);font-weight:700}
+.tabs button .badge-n{top:2px;right:calc(50% - 22px)}
+.swap{border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+.swap .who{font-size:13px;color:var(--mut);margin-bottom:10px}
+.swap .pair{display:flex;align-items:center;gap:6px}
+.swap .side{flex:1;text-align:center;min-width:0;cursor:pointer}
+.swap .side .th{width:92px;height:92px;border-radius:10px;margin:6px auto;font-size:38px}
+.swap .side .t{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.swap .side .h{font-size:12px;font-weight:600}
+.swap .arrow{font-size:24px;color:var(--mut)}
+.swap .acts{display:flex;gap:10px}.swap .acts .btn{margin-top:12px}
+.map{height:220px;background:#eef0ec;position:relative;border-bottom:1px solid var(--line)}
+.map svg{width:100%;height:100%;display:block}
+.pin{position:absolute;transform:translate(-50%,-100%);font-size:28px;cursor:pointer;filter:grayscale(1);transition:transform .15s}
+.pin.on{filter:none;transform:translate(-50%,-100%) scale(1.25)}
+.pin b{position:absolute;top:5px;left:0;right:0;text-align:center;font-size:11px;color:#fff}
+.li.sel{background:var(--gl)}
+.chathead{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line);flex-shrink:0}
+.matbar{display:flex;align-items:center;gap:10px;padding:8px 16px;background:var(--bg);border-bottom:1px solid var(--line);font-size:13px;cursor:pointer;flex-shrink:0}
+.matbar .th{width:40px;height:40px;border-radius:8px;font-size:20px}
+.matbar .btn{width:auto;margin:0;padding:7px 10px;font-size:12px}
+.msgs{display:flex;flex-direction:column;gap:8px;padding:14px 16px}
+.msg{max-width:78%;padding:9px 12px;border-radius:14px;font-size:14px;line-height:1.35;border:1px solid var(--line);background:#fff}
+.msg.me{align-self:flex-end;background:#e4e4e8;border-color:#e4e4e8;border-bottom-right-radius:4px}
+.msg.ot{align-self:flex-start;border-bottom-left-radius:4px}
+.msg.sys{align-self:center;background:var(--gl);color:var(--g);border:0;font-size:12px;text-align:center;max-width:90%}
+.msg .tm{font-size:10.5px;color:var(--mut);text-align:right;margin-top:3px}
+.compose{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line);flex-shrink:0;padding-bottom:max(10px,env(safe-area-inset-bottom))}
+.compose input{flex:1;border:1px solid #bfbfc4;border-radius:10px;padding:11px;font:inherit;font-size:15px}
+.compose button{border:1px solid #bfbfc4;background:#fff;border-radius:10px;width:46px;font-size:18px;cursor:pointer}
+.code{font-size:34px;font-weight:800;letter-spacing:10px;text-align:center;padding:10px;background:var(--gl);color:var(--g);border-radius:12px;margin-top:6px}
+.bigstars{display:flex;justify-content:center;gap:10px;margin:16px 0}
+.bigstars button{background:none;border:0;font-size:40px;cursor:pointer;color:#c4c4c8;line-height:1}
+.bigstars button.on{color:#c78a00}
+.done{border:1px solid var(--line);border-radius:14px;padding:24px;text-align:center;margin-top:18px}
+.done .e{font-size:44px}
+.stat{display:flex;justify-content:space-between;align-items:center;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:16px}
+.stat b{font-size:28px}
+.drawer-bg{position:absolute;inset:0;background:rgba(0,0,0,.4);z-index:20;display:flex;flex-direction:column}
+.drawer{background:#fff;max-height:88%;overflow-y:auto;border-bottom-left-radius:16px;border-bottom-right-radius:16px}
+.drawer .li{padding:14px 18px;font-size:16px}
+.drawer .sec{font-size:12px;font-weight:700;color:var(--mut);padding:14px 18px 6px;text-transform:uppercase;letter-spacing:.5px;background:var(--bg)}
+.toast{position:absolute;left:16px;right:16px;bottom:88px;background:#1d1d1f;color:#fff;padding:12px 14px;border-radius:12px;font-size:14px;z-index:40;box-shadow:0 6px 18px rgba(0,0,0,.3);animation:tin .2s}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}}
+.splash{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#fff}
+.splash .logo{width:120px;height:120px;border-radius:28px;background:var(--gl);display:grid;place-items:center;font-size:64px}
+.splash .name{font-size:42px;font-weight:800;color:var(--g)}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13px;margin-top:14px;color:var(--mut)}
+.radio{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;cursor:pointer}
+.radio.on{border-color:var(--g);background:var(--gl)}
+.radio .th{width:52px;height:52px;border-radius:8px;font-size:24px}
+.toggle{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);font-size:15px}
+.demo{font-size:12px;color:var(--mut);background:var(--bg);border-radius:10px;padding:10px;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="phone"><div id="app"></div></div>
+<script>
+/* ===== Catálogos ===== */
+const CATS=[
+ {id:'electronica',n:'Electrónica',i:'🔌'},{id:'madera',n:'Madera',i:'🪵'},{id:'papeleria',n:'Papelería y cartón',i:'📦'},
+ {id:'plasticos',n:'Plásticos',i:'🧴'},{id:'herramientas',n:'Herramientas',i:'🔧'},{id:'textiles',n:'Textiles',i:'🧵'},
+ {id:'construccion',n:'Construcción',i:'🧱'},{id:'metales',n:'Metales',i:'🔩'},{id:'otros',n:'Otros',i:'♻️'}];
+const FACS=[
+ {s:'FIEC',n:'Facultad de Ingeniería en Electricidad y Computación',c:'aefiec',car:['Ciencia de Datos e Inteligencia Artificial','Computación','Electricidad','Electrónica y Automatización','Telecomunicaciones','Telemática']},
+ {s:'FADCOM',n:'Facultad de Arte, Diseño y Comunicación Audiovisual',c:'aefadcom',car:['Animación Digital y Videojuegos','Diseño de Productos','Diseño Gráfico','Producción para Medios de Comunicación']},
+ {s:'FCV',n:'Facultad de Ciencias de la Vida',c:'aefcv',car:['Biología','Ingeniería Agrícola y Biológica','Nutrición y Dietética']},
+ {s:'FICT',n:'Facultad de Ingeniería en Ciencias de la Tierra',c:'aefict',car:['Geología','Ingeniería Civil','Minas','Petróleos']},
+ {s:'FCSH',n:'Facultad de Ciencias Sociales y Humanísticas',c:'aefcsh',car:['Administración de Empresas','Arqueología','Auditoría y Control de Gestión','Economía','Turismo']},
+ {s:'FIMCP',n:'Facultad de Ingeniería en Mecánica y Ciencias de la Producción',c:'aefimcp',car:['Alimentos','Ingeniería Industrial','Materiales','Mecánica','Mecatrónica']},
+ {s:'FIMCM',n:'Facultad de Ingeniería Marítima y Ciencias del Mar',c:'aefcmnm',car:['Acuicultura','Ingeniería Naval','Oceanografía']},
+ {s:'FCNM',n:'Facultad de Ciencias Naturales y Matemáticas',c:'aefcnm',car:['Estadística','Ingeniería Química','Logística y Transporte','Matemática']}];
+const OTROS_ROLES=['Docente','Personal administrativo'];
+const CARRERAS=[...FACS.flatMap(f=>f.car),...OTROS_ROLES];
+const HOR='Lun–Vie 08:00–17:00';
+const CENTROS=[
+ {id:'aefiec',n:'AEFIEC',a:'Asociación de Estudiantes de Ingeniería en Electricidad y Computación',f:'FIEC',u:'Facultad FIEC',h:HOR,x:130,y:62},
+ {id:'aefadcom',n:'AEFADCOM',a:'Asociación de Estudiantes de Arte, Diseño y Comunicación',f:'FADCOM',u:'Facultad FADCOM',h:HOR,x:298,y:186},
+ {id:'aefcv',n:'AEFCV',a:'Asociación de Estudiantes de Ciencias de la Vida',f:'FCV',u:'Facultad FCV',h:HOR,x:200,y:206},
+ {id:'aefict',n:'AEFICT',a:'Asociación de Estudiantes de Ingeniería en Ciencias de la Tierra',f:'FICT',u:'Facultad FICT',h:HOR,x:62,y:120},
+ {id:'aefcsh',n:'AEFCSH',a:'Asociación de Estudiantes de Ciencias Sociales y Humanísticas',f:'FCSH',u:'Facultad FCSH',h:HOR,x:276,y:110},
+ {id:'aefimcp',n:'AEFIMCP',a:'Asociación de Estudiantes de Ingeniería Mecánica y Ciencias de la Producción',f:'FIMCP',u:'Facultad FIMCP',h:HOR,x:222,y:46},
+ {id:'aefcmnm',n:'AEFCMNM',a:'Asociación de Estudiantes de Ciencias Navales y Marítimas',f:'FIMCM',u:'Facultad FIMCM',h:HOR,x:86,y:200},
+ {id:'aefcnm',n:'AEFCNM',a:'Asociación de Estudiantes de Ciencias Naturales y Matemáticas',f:'FCNM',u:'Facultad FCNM',h:HOR,x:176,y:122}];
+const facDe=car=>FACS.find(f=>f.car.includes(car));
+const centroDeCarrera=car=>(facDe(car)||{}).c||'';
+function carreraOptions(sel){return FACS.map(f=>`<optgroup label="${f.s} · ${f.n}">${f.car.map(c=>`<option ${sel===c?'selected':''}>${c}</option>`).join('')}</optgroup>`).join('')+`<optgroup label="Otros">${OTROS_ROLES.map(c=>`<option ${sel===c?'selected':''}>${c}</option>`).join('')}</optgroup>`}
+const CONDS=['Nuevo','Usado · Bueno','Usado · Regular'];
+const MODES={venta:'Venta',intercambio:'Intercambio',donacion:'Donación'};
+const UNITS=['unidades','metros','m²','kg','litros','galones','cajas'];
+const KEY='rebio-proto-v2';
+
+/* ===== Datos de ejemplo ===== */
+function seed(){
+ const now=Date.now(),d=n=>now-n*864e5;
+ const M=(id,title,cat,cond,mode,price,owner,centro,qty,unit,kg,i,desc,extra={})=>({id,title,cat,cond,mode,price,owner,centro,qty,unit,kg,icon:i,desc,photos:[],status:'activa',created:d(Math.random()*20),...extra});
+ return {
+  session:null,
+  accounts:{'demo@espol.edu.ec':{pass:'rebio123',name:'Usuario Demo',carrera:'Biología'}},
+  users:{
+   me:{id:'me',name:'Usuario Demo',carrera:'Biología',since:2026,kg:12,ratings:[5,4,5],email:'demo@espol.edu.ec'},
+   u1:{id:'u1',name:'María López',carrera:'Diseño de Productos',since:2023,kg:46,ratings:[5,5,4,5]},
+   u2:{id:'u2',name:'Carlos Pérez',carrera:'Electricidad',since:2024,kg:21,ratings:[4,5,4]},
+   u3:{id:'u3',name:'Ana Torres',carrera:'Biología',since:2025,kg:9,ratings:[5]}},
+  mats:[
+   M('m1','Tablero MDF','madera','Usado · Bueno','venta',5,'u1','aefadcom',1,'unidades',12,'🪵','Tablero de MDF de 18 mm, buen estado. Ideal para maquetas.',{featured:true}),
+   M('m2','Cable eléctrico','electronica','Usado · Bueno','venta',2,'u2','aefiec',5,'metros',1.5,'🔌','Cable de cobre calibre 12, sobrante de laboratorio.'),
+   M('m3','Tubería PVC','plasticos','Usado · Bueno','donacion',0,'u3','aefcv',4,'metros',4,'🧪','Tubos de PVC de 1/2 pulgada, sin fisuras.'),
+   M('m4','Pintura látex','otros','Usado · Bueno','intercambio',0,'u3','aefcv',1,'galones',4,'🎨','Medio galón de pintura látex blanca.',{want:'Tubos PVC o madera'}),
+   M('m5','Tornillos','herramientas','Nuevo','venta',1,'u2','aefiec',1,'cajas',.5,'🔩','Caja de 100 tornillos para madera.'),
+   M('m6','Maderas varias','madera','Usado · Regular','donacion',0,'u1','aefadcom',10,'unidades',8,'🪵','Retazos de madera de distintas medidas.'),
+   M('m7','Fuente de poder','electronica','Usado · Bueno','intercambio',0,'u2','aefiec',1,'unidades',1,'🔋','Fuente ATX de 500 W, funciona.',{want:'Calculadora o herramientas'}),
+   M('m8','Tarjeta madre','electronica','Usado · Regular','venta',15,'u2','aefiec',1,'unidades',.8,'💾','Tarjeta madre de escritorio, para repuestos.'),
+   M('m9','Disco duro 500GB','electronica','Usado · Bueno','venta',10,'u1','aefadcom',1,'unidades',.3,'💽','Disco de 500 GB, formateado.'),
+   M('m10','Teclado','electronica','Usado · Bueno','donacion',0,'u3','aefcv',1,'unidades',.6,'⌨️','Teclado USB en español.'),
+   M('m11','Monitor LCD 19"','electronica','Usado · Regular','venta',20,'u1','aefadcom',1,'unidades',3.5,'🖥️','Monitor de 19 pulgadas con una raya leve.'),
+   M('m12','Ladrillos','construccion','Usado · Regular','donacion',0,'u1','aefadcom',20,'unidades',50,'🧱','Ladrillos sobrantes de una maqueta a escala real.'),
+   M('m13','Puerta metálica','metales','Usado · Bueno','donacion',0,'u2','aefiec',1,'unidades',25,'🚪','Puerta metálica de 80 × 200 cm.'),
+   M('m14','Azulejos','construccion','Usado · Bueno','donacion',0,'u3','aefcv',2,'m²',15,'◻️','Azulejos blancos de 20 × 20 cm.'),
+   M('m15','Cartón corrugado','papeleria','Usado · Bueno','donacion',0,'u3','aefcv',3,'kg',3,'📦','Planchas de cartón para maquetas.'),
+   M('m16','Retazos de tela','textiles','Usado · Bueno','venta',3,'u1','aefadcom',2,'kg',2,'🧵','Retazos de algodón de colores.'),
+   M('m17','Tubos PVC','plasticos','Usado · Bueno','intercambio',0,'me','aefcv',3,'metros',3,'🧪','Tres tubos de PVC de 1 m.',{want:'Pintura o madera'}),
+   M('m18','Calculadora científica','electronica','Usado · Bueno','intercambio',0,'me','aefiec',1,'unidades',.2,'🧮','Calculadora Casio fx-82, funciona perfecto.',{want:'Componentes electrónicos'})],
+  props:[
+   {id:'p1',from:'u3',to:'me',offer:'m4',want:'m17',status:'pendiente',t:d(1)},
+   {id:'p2',from:'u2',to:'me',offer:'m7',want:'m18',status:'pendiente',t:d(2)}],
+  txs:[],
+  chats:[{id:'ch1',with:'u1',mat:'m1',msgs:[
+   {f:'me',x:'Hola, ¿sigue disponible el tablero MDF?',t:d(.2)},{f:'u1',x:'Sí, todavía lo tengo disponible.',t:d(.19)},
+   {f:'me',x:'¿En qué estado está?',t:d(.18)},{f:'u1',x:'Está en buen estado, lo puedes ver en las fotos.',t:d(.17)},
+   {f:'me',x:'Perfecto, ¿cuándo podemos coordinar?',t:d(.16)}]}],
+  notifs:[{x:'Ana Torres te propuso un intercambio por Tubos PVC',t:d(1),r:false,go:['swaps',{tab:'recibidas'}]},
+          {x:'Carlos Pérez te propuso un intercambio por Calculadora científica',t:d(2),r:false,go:['swaps',{tab:'recibidas'}]}],
+  seq:100};
+}
+let S; try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){} if(!S||!S.mats) S=seed();
+let warnedQuota=false;
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){if(!warnedQuota){warnedQuota=true;toast('Almacenamiento lleno: las fotos nuevas no se guardarán al recargar.')}}}
+const uid=p=>p+(++S.seq);
+
+/* ===== Utilidades ===== */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const usd=n=>'$'+Number(n).toFixed(2);
+const mat=id=>S.mats.find(m=>m.id===id);
+const user=id=>S.users[id];
+const cat=id=>CATS.find(c=>c.id===id)||{n:'Todos los materiales',i:'♻️'};
+const centro=id=>CENTROS.find(c=>c.id===id)||CENTROS[0];
+const ini=n=>n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+const avg=u=>u.ratings.length?u.ratings.reduce((a,b)=>a+b,0)/u.ratings.length:0;
+const stars=v=>{const r=Math.round(v);return '<span class="stars">'+'★'.repeat(r)+'☆'.repeat(5-r)+'</span>'};
+const hm=t=>new Date(t).toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit',hour12:false});
+const dm=t=>new Date(t).toLocaleDateString('es-EC',{day:'2-digit',month:'2-digit',year:'numeric'});
+const norm=s=>s.normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+const qtyTxt=m=>m.qty+' '+(m.qty==1?({unidades:'unidad',metros:'metro',galones:'galón',cajas:'caja',litros:'litro'}[m.unit]||m.unit):m.unit);
+const kgf=n=>(Math.round(n*10)/10).toString().replace('.',',');
+const thumb=m=>`<div class="th">${m.photos&&m.photos[0]?`<img src="${m.photos[0]}" alt="">`:m.icon}</div>`;
+const priceTxt=m=>m.mode==='venta'?usd(m.price):m.mode==='donacion'?'Donación':'Intercambio';
+const modeTag=m=>`<span class="tag ${m.mode==='donacion'?'don':''}">${MODES[m.mode]}</span>`;
+const stTag=m=>m.status==='activa'?'<span class="tag ok">Activa</span>':m.status==='reservada'?'<span class="tag res">Reservada</span>':m.status==='pausada'?'<span class="tag">Pausada</span>':'<span class="tag don">Entregada</span>';
+const unread=()=>S.notifs.filter(n=>!n.r).length;
+function toast(msg){document.querySelectorAll('.toast').forEach(t=>t.remove());const t=document.createElement('div');t.className='toast';t.textContent=msg;$('app').appendChild(t);setTimeout(()=>t.remove(),2800)}
+function notify(x,go){S.notifs.unshift({x,t:Date.now(),r:false,go});save();const cur=NAV[NAV.length-1].s;if(!['publish','splash'].includes(cur)&&S.session)render(true);toast('🔔 '+x)}
+
+/* ===== Navegación ===== */
+let NAV=[{s:'splash',p:{}}];
+function go(s,p={}){NAV.push({s,p});render()}
+function replace(s,p={}){NAV[NAV.length-1]={s,p};render()}
+function reset(s,p={}){NAV=[{s,p}];render()}
+function back(){if(NAV.length>1){NAV.pop();render()}else reset('home')}
+function render(keepScroll){
+ const cur=NAV[NAV.length-1];const b=document.querySelector('.body');const sc=keepScroll&&b?b.scrollTop:0;
+ const vals={};if(keepScroll)document.querySelectorAll('#app input[id],#app select[id],#app textarea[id]').forEach(e=>{if(e.type!=='file')vals[e.id]=e.type==='checkbox'?e.checked:e.value});
+ $('app').innerHTML=SCREENS[cur.s](cur.p);
+ if(keepScroll)Object.entries(vals).forEach(([id,v])=>{const e=$(id);if(e){if(e.type==='checkbox')e.checked=v;else e.value=v}});
+ const nb=document.querySelector('.body');if(nb&&keepScroll)nb.scrollTop=sc;
+ save();
+ const af=document.querySelector('[autofocus]');if(af)af.focus();
+}
+
+/* ===== Piezas comunes ===== */
+const hBrand=()=>`<div class="hdr"><div class="brand">🌱 Re-Bio</div><button class="ib" aria-label="Notificaciones" onclick="go('notifs')">🔔${unread()?`<span class="badge-n">${unread()}</span>`:''}</button><button class="ib" aria-label="Menú" onclick="openMenu()">☰</button></div>`;
+const hBack=t=>`<div class="hdr"><button class="ib" aria-label="Atrás" onclick="back()">←</button><h1>${t}</h1><button class="ib" aria-label="Menú" onclick="openMenu()">☰</button></div>`;
+const hModal=t=>`<div class="hdr"><h1>${t}</h1><button class="ib" aria-label="Cerrar" onclick="back()">✕</button></div>`;
+const hAuth=(t,backBtn)=>`<div class="hdr">${backBtn?'<button class="ib" aria-label="Atrás" onclick="back()">←</button>':''}<div class="brand">${t}</div></div>`;
+function tabs(on){
+ const unreadChats=0;
+ const T=[['home','🏠','Inicio'],['search','🔍','Buscar'],['publish','➕','Publicar'],['inbox','💬','Mensajes'],['profile','👤','Perfil']];
+ return `<div class="tabs">${T.map(([s,i,l])=>`<button class="${on===s?'on':''}" onclick="${s==='publish'?"go('publish')":`reset('${s}')`}"><span class="i">${i}</span>${l}</button>`).join('')}</div>`;
+}
+const rowItem=m=>`<div class="li" onclick="go('detail',{id:'${m.id}'})">${thumb(m)}<div class="mid"><div class="t">${esc(m.title)}</div><div class="s">${esc(m.cond)} · ${esc(centro(m.centro).u)}</div></div><div class="r ${m.mode==='donacion'?'':'price'}" style="${m.mode==='donacion'?'color:var(--g)':''}">${priceTxt(m)}</div></div>`;
+const empty=(e,t,extra='')=>`<div class="empty"><div class="e">${e}</div>${t}${extra}</div>`;
+const active=()=>S.mats.filter(m=>m.status==='activa'&&m.owner!=='me');
+function field(id,label,inner){return `<label class="f" for="${id}">${label}</label>${inner}<div class="err" id="${id}-err"></div>`}
+function setErr(id,msg){const e=$(id+'-err');if(e)e.textContent=msg||'';const i=$(id);if(i)i.classList.toggle('bad',!!msg);return !msg}
+const val=id=>($(id)?.value??'');
+function togglePw(id){const i=$(id);i.type=i.type==='password'?'text':'password'}
+function pwField(id,label){return field(id,label,`<div class="pw"><input class="in" id="${id}" type="password" autocomplete="current-password"><button type="button" class="ib eye" aria-label="Mostrar u ocultar contraseña" onclick="togglePw('${id}')">👁</button></div>`)}
+
+/* ===== Menú (P5) ===== */
+function openMenu(){
+ const d=document.createElement('div');d.className='drawer-bg';d.onclick=e=>{if(e.target===d)d.remove()};
+ const logged=!!S.session;
+ d.innerHTML=`<div class="drawer"><div class="hdr"><div class="brand">🌱 Re-Bio</div><button class="ib" aria-label="Cerrar menú" onclick="this.closest('.drawer-bg').remove()">✕</button></div>
+ <div class="sec">Categorías</div>
+ ${CATS.map(c=>`<div class="li" onclick="closeMenu();go('cat',{cat:'${c.id}'})">${c.n}</div>`).join('')}
+ ${logged?`<div class="sec">Mi cuenta</div>
+ <div class="li" onclick="closeMenu();reset('profile')">👤&nbsp; Mi perfil</div>
+ <div class="li" onclick="closeMenu();go('swaps')">⇄&nbsp; Mis intercambios</div>
+ <div class="li" onclick="closeMenu();reset('inbox')">💬&nbsp; Mensajes</div>
+ <div class="li" onclick="closeMenu();go('donaciones')">🎁&nbsp; Donaciones</div>
+ <div class="li" onclick="closeMenu();go('centros')">📍&nbsp; Centros de acopio</div>
+ <div class="li" onclick="closeMenu();logout()">🚪&nbsp; Cerrar sesión</div>`:''}</div>`;
+ $('app').appendChild(d);
+}
+function closeMenu(){document.querySelector('.drawer-bg')?.remove()}
+function logout(){S.session=null;save();reset('login');toast('Sesión cerrada')}
+
+/* ===== Pantallas ===== */
+const SCREENS={};
+
+/* P1 Splash */
+SCREENS.splash=()=>{setTimeout(()=>{if(NAV.length===1&&NAV[0].s==='splash')reset(S.session?'home':'login')},1400);
+ return `<div class="splash"><div class="logo">🌱</div><div class="name">Re-Bio</div><div class="mut center" style="font-size:17px">Dale una segunda vida<br>a tus materiales</div></div>`};
+
+/* P2 Inicio de sesión */
+SCREENS.login=()=>`${hAuth('🌱 Re-Bio')}<div class="body"><h2>Iniciar sesión</h2>
+ ${field('l-email','Correo ESPOL','<input class="in" id="l-email" type="email" placeholder="usuario@espol.edu.ec" autocomplete="email">')}
+ ${pwField('l-pass','Contraseña')}
+ <button class="btn p" onclick="doLogin()">Ingresar</button>
+ <div class="center" style="margin-top:6px"><button class="link" onclick="go('forgot')">¿Olvidaste tu contraseña?</button></div>
+ <div class="center"><button class="link" onclick="go('register')">Crear cuenta</button></div>
+ <div class="demo">Cuenta de prueba: <b>demo@espol.edu.ec</b> · contraseña <b>rebio123</b></div></div>`;
+function doLogin(){
+ const e=val('l-email').trim().toLowerCase(),p=val('l-pass');
+ if(!setErr('l-email',/^[^@\s]+@espol\.edu\.ec$/.test(e)?'':'Usa tu correo institucional @espol.edu.ec'))return;
+ const a=S.accounts[e];
+ if(!setErr('l-pass',a&&a.pass===p?'':'Correo o contraseña incorrectos'))return;
+ setMe(e);reset('home');toast('Hola, '+a.name.split(' ')[0]);
+}
+function setMe(e){const a=S.accounts[e];S.session=e;Object.assign(S.users.me,{name:a.name,carrera:a.carrera,email:e})}
+
+/* N1 Recuperar contraseña */
+SCREENS.forgot=()=>`${hAuth('Recuperar acceso',true)}<div class="body"><h2>¿Olvidaste tu contraseña?</h2>
+ <p class="mut sm">Te enviaremos un enlace a tu correo ESPOL para crear una nueva.</p>
+ ${field('f-email','Correo ESPOL','<input class="in" id="f-email" type="email" placeholder="usuario@espol.edu.ec">')}
+ <button class="btn p" onclick="if(setErr('f-email',/^[^@\\s]+@espol\\.edu\\.ec$/.test(val('f-email').trim().toLowerCase())?'':'Usa tu correo @espol.edu.ec')){back();toast('Enlace enviado (simulado)')}">Enviar enlace</button></div>`;
+
+/* P3 Registro */
+SCREENS.register=()=>`${hAuth('Re-Bio',true)}<div class="body"><h2>Crear cuenta</h2>
+ ${field('r-name','Nombre','<input class="in" id="r-name" autocomplete="name">')}
+ ${field('r-email','Correo ESPOL','<input class="in" id="r-email" type="email" placeholder="usuario@espol.edu.ec">')}
+ ${field('r-car','Carrera',`<select class="in" id="r-car"><option value="">Selecciona…</option>${carreraOptions('')}</select>`)}
+ ${pwField('r-pass','Contraseña')}<div class="xs mut">Mínimo 8 caracteres, con al menos un número.</div>
+ ${pwField('r-pass2','Repite la contraseña')}
+ <label class="chk"><input type="checkbox" id="r-terms"> Acepto los términos de uso y la política de privacidad de Re-Bio.</label><div class="err" id="r-terms-err"></div>
+ <button class="btn p" onclick="doRegister()">Registrarme</button></div>`;
+let PENDING=null;
+function doRegister(){
+ const n=val('r-name').trim(),e=val('r-email').trim().toLowerCase(),c=val('r-car'),p=val('r-pass'),p2=val('r-pass2');
+ let ok=setErr('r-name',n.length>=3?'':'Escribe tu nombre completo');
+ ok=setErr('r-email',!/^[^@\s]+@espol\.edu\.ec$/.test(e)?'Usa tu correo institucional @espol.edu.ec':S.accounts[e]?'Este correo ya tiene cuenta':'')&&ok;
+ ok=setErr('r-car',c?'':'Elige tu carrera')&&ok;
+ ok=setErr('r-pass',p.length>=8&&/\d/.test(p)?'':'Mínimo 8 caracteres y un número')&&ok;
+ ok=setErr('r-pass2',p===p2?'':'Las contraseñas no coinciden')&&ok;
+ ok=setErr('r-terms',$('r-terms').checked?'':'Debes aceptar los términos')&&ok;
+ if(!ok)return;
+ PENDING={e,a:{pass:p,name:n,carrera:c}};go('verify');
+}
+
+/* N2 Verificar correo */
+SCREENS.verify=()=>`${hAuth('Verificar correo',true)}<div class="body"><h2>Revisa tu correo</h2>
+ <p class="mut sm">Enviamos un código de 6 dígitos a <b>${esc(PENDING?.e||'')}</b>.</p>
+ ${field('v-code','Código','<input class="in" id="v-code" inputmode="numeric" maxlength="6" placeholder="000000" autofocus>')}
+ <button class="btn p" onclick="doVerify()">Verificar y entrar</button>
+ <div class="demo">Prototipo: el código de prueba es <b>123456</b>.</div></div>`;
+function doVerify(){
+ if(!setErr('v-code',val('v-code').trim()==='123456'?'':'Código incorrecto'))return;
+ S.accounts[PENDING.e]=PENDING.a;S.users.me.since=new Date().getFullYear();
+ setMe(PENDING.e);PENDING=null;reset('home');toast('¡Cuenta creada! Bienvenido a Re-Bio');
+}
+
+/* P4 Inicio */
+SCREENS.home=()=>{
+ const others=active().filter(m=>m.owner!=='me');
+ const f=others.find(m=>m.featured)||others[0];
+ const list=others.sort((a,b)=>b.created-a.created).slice(0,9);
+ return `${hBrand()}<div class="body">
+ <div class="search" onclick="reset('search')">🔍 <span>Buscar materiales</span></div>
+ ${f?`<div class="banner" onclick="go('detail',{id:'${f.id}'})">${f.photos[0]?`<img src="${f.photos[0]}" alt="">`:`<div class="big">${f.icon}</div>`}<div class="tx"><b>Material destacado</b>${esc(f.title)} · ${priceTxt(f)}<div class="sm mut" style="text-decoration:underline">Ver más</div></div></div>`:''}
+ <div class="quick"><button onclick="go('cat',{cat:'all',mode:'intercambio'})">Intercambiar</button><button onclick="go('cat',{cat:'all',mode:'venta'})">Comprar</button><button onclick="go('donaciones')">Donar</button></div>
+ <h3>Materiales destacados</h3>
+ ${list.length?`<div class="grid">${list.map(m=>`<div class="gi" onclick="go('detail',{id:'${m.id}'})">${thumb(m)}<div class="t">${esc(m.title)}</div><div class="p" style="${m.mode==='donacion'?'color:var(--g)':''}">${priceTxt(m)}</div></div>`).join('')}</div>`:empty('🌱','Aún no hay materiales publicados.')}
+ <div style="height:70px"></div></div>
+ <button class="fab" onclick="go('publish')">＋ Publicar</button>${tabs('home')}`};
+
+/* P6 Lista de categoría */
+function filterList(arr,mode,sort){
+ let r=arr.filter(m=>!mode||mode==='todas'||m.mode===mode);
+ r=sort==='precio'?r.sort((a,b)=>(a.mode==='venta'?a.price:-1)-(b.mode==='venta'?b.price:-1)):r.sort((a,b)=>b.created-a.created);
+ return r;
+}
+function segHTML(cur,fn){return `<div class="seg">${[['todas','Todas'],['venta','Venta'],['intercambio','Intercambio'],['donacion','Donación']].map(([k,l])=>`<button class="${cur===k?'on':''}" onclick="${fn}('${k}')">${l}</button>`).join('')}</div>`}
+SCREENS.cat=p=>{
+ const mode=p.mode||'todas',sort=p.sort||'recientes';
+ const base=active().filter(m=>p.cat==='all'||m.cat===p.cat);
+ const list=filterList(base,mode,sort);
+ return `${hBack(esc(cat(p.cat).n))}${segHTML(mode,'setCatMode')}
+ <div class="bar">${list.length} resultado${list.length===1?'':'s'} · Ordenar: <select onchange="setCatSort(this.value)"><option value="recientes" ${sort==='recientes'?'selected':''}>Recientes</option><option value="precio" ${sort==='precio'?'selected':''}>Menor precio</option></select></div>
+ <div class="body np">${list.length?list.map(rowItem).join(''):empty(cat(p.cat).i,'Aún no hay materiales con este filtro.',`<button class="btn" style="margin-top:16px" onclick="go('publish',{cat:'${p.cat==='all'?'':p.cat}'})">Publicar uno</button>`)}</div>`};
+function setCatMode(m){NAV[NAV.length-1].p.mode=m;render()}
+function setCatSort(s){NAV[NAV.length-1].p.sort=s;render()}
+
+/* N3 Buscar / resultados */
+SCREENS.search=p=>{
+ const q=p.q||'',mode=p.mode||'todas';
+ const nq=norm(q.trim());
+ const base=active().filter(m=>!nq||norm(m.title+' '+m.desc+' '+cat(m.cat).n).includes(nq));
+ const list=filterList(base,mode,'recientes');
+ return `${hBrand()}<div style="padding:12px 16px 0"><div class="search">🔍 <input id="q" placeholder="Buscar materiales" value="${esc(q)}" oninput="searchType(this.value)" autofocus></div></div>
+ ${segHTML(mode,'setSearchMode')}
+ <div class="body np" id="sres">${resultsHTML(list,q)}</div>${tabs('search')}`};
+function resultsHTML(list,q){return list.length?`<div class="bar">${list.length} resultado${list.length===1?'':'s'}${q?` para “${esc(q)}”`:''}</div>`+list.map(rowItem).join(''):empty('🔍','No encontramos materiales con esa búsqueda.')}
+let sT;function searchType(v){NAV[NAV.length-1].p.q=v;clearTimeout(sT);sT=setTimeout(()=>{const p=NAV[NAV.length-1].p;const nq=norm(v.trim());const list=filterList(active().filter(m=>!nq||norm(m.title+' '+m.desc+' '+cat(m.cat).n).includes(nq)),p.mode||'todas');$('sres').innerHTML=resultsHTML(list,v)},150)}
+function setSearchMode(m){NAV[NAV.length-1].p.mode=m;render()}
+
+/* P7 Detalle */
+SCREENS.detail=p=>{
+ const m=mat(p.id);if(!m)return `${hBack('Material')}${empty('❓','Este material ya no existe.')}`;
+ const o=user(m.owner),mine=m.owner==='me',c=centro(m.centro);
+ const pics=m.photos.length?m.photos.map(s=>`<div><img src="${s}" alt=""></div>`).join(''):`<div>${m.icon}</div>`;
+ let acts='';
+ if(mine){
+  acts=`<button class="btn" onclick="go('publish',{edit:'${m.id}'})">Editar</button>
+  ${m.status==='activa'||m.status==='pausada'?`<button class="btn" onclick="togglePause('${m.id}')">${m.status==='pausada'?'Reactivar':'Pausar'} publicación</button>`:''}
+  ${m.status!=='reservada'?`<button class="btn d" onclick="delMat('${m.id}')">Eliminar</button>`:''}`;
+ }else if(m.status==='activa'){
+  acts=m.mode==='venta'?`<button class="btn p" onclick="go('confirm',{id:'${m.id}'})">Comprar</button>`
+   :m.mode==='intercambio'?`<button class="btn p" onclick="go('pickswap',{id:'${m.id}'})">Proponer intercambio</button>`
+   :`<button class="btn p" onclick="go('confirm',{id:'${m.id}'})">Solicitar donación</button>`;
+  acts+=`<button class="btn" onclick="openChat('${m.owner}','${m.id}')">Contactar</button>`;
+ }else{acts=`<div class="note w">Este material está ${m.status==='reservada'?'reservado':m.status==='pausada'?'pausado':'entregado'} y no admite nuevas solicitudes.</div><button class="btn" onclick="openChat('${m.owner}','${m.id}')">Contactar</button>`}
+ return `${hBack('Material')}<div class="body np"><div class="hero">${pics}</div>
+ ${m.photos.length>1?`<div class="center xs mut" style="padding-top:6px">Desliza para ver ${m.photos.length} fotos</div>`:''}
+ <div style="padding:14px 16px 24px">
+ <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div style="font-size:20px;font-weight:700">${esc(m.title)}</div><div style="font-size:20px;font-weight:800;${m.mode==='donacion'?'color:var(--g)':''}">${priceTxt(m)}</div></div>
+ <div>${modeTag(m)}${mine||m.status!=='activa'?stTag(m):''}<span class="tag">${cat(m.cat).n}</span></div>
+ <p style="margin:12px 0 6px;font-size:14px">${esc(m.desc)}</p>
+ <div class="kv"><span>Estado</span><span>${esc(m.cond)}</span></div>
+ <div class="kv"><span>Modalidad</span><span>${MODES[m.mode]}</span></div>
+ ${m.mode==='intercambio'&&m.want?`<div class="kv"><span>Busca a cambio</span><span>${esc(m.want)}</span></div>`:''}
+ <div class="kv"><span>Cantidad</span><span>${qtyTxt(m)}</span></div>
+ <div class="kv"><span>Peso aproximado</span><span>${kgf(m.kg)} kg</span></div>
+ <div class="kv"><span>Punto de acopio</span><span><a href="#" onclick="event.preventDefault();go('centros',{sel:'${c.id}'})">${esc(c.n)}<br>${esc(c.u)}</a></span></div>
+ <div class="kv"><span>Publicado</span><span>${dm(m.created)}</span></div>
+ <div class="user" onclick="go('profile',{uid:'${o.id}'})"><div class="av">${ini(o.name)}</div><div style="flex:1"><b>${esc(o.name)}${mine?' (tú)':''}</b><div class="sm mut">Publicador desde ${o.since}</div><div class="sm mut">${S.mats.filter(x=>x.owner===o.id).length} publicaciones · ${o.ratings.length?stars(avg(o))+' '+avg(o).toFixed(1):'Sin calificaciones'}</div></div><span class="chev">›</span></div>
+ ${acts}
+ ${mine?'':`<div class="center"><button class="link" style="color:var(--mut)" onclick="go('report',{id:'${m.id}'})">Reportar publicación</button></div>`}
+ </div></div>`};
+function togglePause(id){const m=mat(id);m.status=m.status==='pausada'?'activa':'pausada';render();toast(m.status==='pausada'?'Publicación pausada':'Publicación reactivada')}
+function delMat(id){if(!confirmInline(id))return;S.mats=S.mats.filter(m=>m.id!==id);back();toast('Publicación eliminada')}
+let delArm=null;function confirmInline(id){if(delArm===id){delArm=null;return true}delArm=id;toast('Pulsa “Eliminar” otra vez para confirmar');setTimeout(()=>{if(delArm===id)delArm=null},3000);return false}
+
+/* N4 Confirmar compra / solicitud */
+SCREENS.confirm=p=>{
+ const m=mat(p.id),c=centro(m.centro),o=user(m.owner),isSale=m.mode==='venta';
+ return `${hBack(isSale?'Confirmar compra':'Solicitar donación')}<div class="body">
+ <div class="li" style="padding:0 0 12px;border-bottom:1px solid var(--line);cursor:default">${thumb(m)}<div class="mid"><div class="t">${esc(m.title)}</div><div class="s">${qtyTxt(m)} · ${esc(m.cond)}</div><div class="s">De ${esc(o.name)}</div></div></div>
+ <div class="kv"><span>${isSale?'Precio':'Costo'}</span><span style="font-weight:700;color:var(--ink)">${isSale?usd(m.price):'Gratis'}</span></div>
+ <div class="kv"><span>Retiro en</span><span>${esc(c.n)}<br>${esc(c.u)}</span></div>
+ <div class="kv"><span>Horario</span><span>${c.h}</span></div>
+ <div class="note">${isSale?'El pago se acuerda directamente con quien vende (efectivo o transferencia) al momento de la entrega. Re-Bio no cobra comisiones.':'La donación es gratuita. Coordina el día del retiro por el chat.'}<br><br>Al confirmar, el material queda <b>reservado</b> para ti y se abre el chat.</div>
+ <button class="btn p" onclick="createTx('${m.id}')">${isSale?'Confirmar compra':'Confirmar solicitud'}</button>
+ <button class="btn" onclick="back()">Cancelar</button></div>`};
+function getChat(other,matId){let c=S.chats.find(c=>c.with===other&&c.mat===matId);if(!c){c={id:uid('ch'),with:other,mat:matId,msgs:[]};S.chats.unshift(c)}return c}
+function createTx(matId){
+ const m=mat(matId);m.status='reservada';
+ const tx={id:uid('t'),type:m.mode,mats:[m.id],giver:m.owner,receiver:'me',other:m.owner,status:'reservada',code:String(1000+Math.floor(Math.random()*9000)),t:Date.now(),rated:false};
+ S.txs.unshift(tx);
+ const c=getChat(m.owner,m.id);c.tx=tx.id;
+ c.msgs.push({f:'sys',x:(m.mode==='venta'?'Compra confirmada':'Donación solicitada')+': '+m.title+'. Material reservado.',t:Date.now()});
+ replace('chat',{id:c.id});toast('Material reservado');
+ setTimeout(()=>{c.msgs.push({f:m.owner,x:'¡Hola! Te lo puedo dejar en el '+centro(m.centro).n+'. ¿Te queda bien mañana?',t:Date.now()});notify(user(m.owner).name+' te escribió sobre '+m.title,['chat',{id:c.id}])},1500);
+}
+
+/* N5 Elegir material para intercambio */
+let PICK=null;
+SCREENS.pickswap=p=>{
+ const want=mat(p.id),mine=S.mats.filter(m=>m.owner==='me'&&m.status==='activa');
+ return `${hBack('Proponer intercambio')}<div class="body">
+ <p class="sm mut">Quieres: <b style="color:var(--ink)">${esc(want.title)}</b> de ${esc(user(want.owner).name)}${want.want?`. Busca a cambio: <i>${esc(want.want)}</i>`:''}.</p>
+ <h3>¿Qué material ofreces?</h3>
+ ${mine.length?mine.map(m=>`<div class="radio ${PICK===m.id?'on':''}" onclick="PICK='${m.id}';render(true)">${thumb(m)}<div style="flex:1"><b>${esc(m.title)}</b><div class="sm mut">${esc(m.cond)} · ${MODES[m.mode]}</div></div>${PICK===m.id?'✔':''}</div>`).join('')
+  +`<button class="btn p" ${PICK&&mine.some(m=>m.id===PICK)?'':'disabled'} onclick="sendProp('${want.id}')">Enviar propuesta</button>`
+  :empty('📦','No tienes publicaciones activas para ofrecer.',`<button class="btn p" style="margin-top:16px" onclick="go('publish',{mode:'intercambio'})">Publicar un material</button>`)}
+ </div>`};
+function sendProp(wantId){
+ const want=mat(wantId),pr={id:uid('p'),from:'me',to:want.owner,offer:PICK,want:wantId,status:'pendiente',t:Date.now()};
+ S.props.unshift(pr);PICK=null;replace('swaps',{tab:'enviadas'});toast('Propuesta enviada');
+ setTimeout(()=>{if(pr.status==='pendiente'&&mat(pr.want)?.status==='activa'&&mat(pr.offer)?.status==='activa'){acceptProp(pr.id,true);notify(user(pr.to).name+' aceptó tu propuesta de intercambio',['swaps',{tab:'enviadas'}])}},6000);
+}
+function acceptProp(id,silent){
+ const pr=S.props.find(p=>p.id===id),a=mat(pr.offer),b=mat(pr.want);
+ if(a.status!=='activa'||b.status!=='activa'){pr.status='rechazada';render(true);return toast('Uno de los materiales ya no está disponible')}
+ pr.status='aceptada';a.status=b.status='reservada';
+ const other=pr.from==='me'?pr.to:pr.from;
+ const tx={id:uid('t'),type:'intercambio',mats:[a.id,b.id],giver:'ambos',receiver:'ambos',other,status:'reservada',code:String(1000+Math.floor(Math.random()*9000)),t:Date.now(),rated:false,prop:pr.id};
+ S.txs.unshift(tx);pr.tx=tx.id;
+ const c=getChat(other,pr.from==='me'?pr.want:pr.offer);c.tx=tx.id;
+ c.msgs.push({f:'sys',x:'Intercambio aceptado: '+a.title+' ⇄ '+b.title,t:Date.now()});
+ if(!silent){render(true);toast('Intercambio aceptado. Coordina el retiro en el chat.')}
+}
+function rejectProp(id){const pr=S.props.find(p=>p.id===id);pr.status='rechazada';render(true);toast('Propuesta rechazada')}
+function cancelProp(id){const pr=S.props.find(p=>p.id===id);pr.status='cancelada';render(true);toast('Propuesta cancelada')}
+
+/* P8 Publicar anuncio */
+let DRAFT={photos:[]};
+SCREENS.publish=p=>{
+ const e=p.edit?mat(p.edit):null;
+ DRAFT={photos:e?[...e.photos]:(DRAFT.keep?DRAFT.photos:[])};
+ const v=(k,d='')=>e?e[k]:d;const mode=e?e.mode:(p.mode||'');
+ return `${hBack(e?'Editar anuncio':'Publicar anuncio')}<div class="body">
+ <label class="f">Subir fotos <span class="mut xs">(hasta 4)</span></label>
+ <div class="photos">${[0,1,2,3].map(i=>`<div class="slot" id="slot${i}" onclick="pickPhoto(${i})">${slotInner(i)}</div>`).join('')}</div>
+ <input type="file" id="file" accept="image/*" hidden onchange="gotPhoto(this)">
+ ${field('pb-name','Nombre del material',`<input class="in" id="pb-name" maxlength="40" value="${esc(v('title'))}" placeholder="Ej.: Tablero MDF">`)}
+ ${field('pb-cat','Categoría',`<select class="in" id="pb-cat"><option value="">Selecciona…</option>${CATS.map(c=>`<option value="${c.id}" ${(e?e.cat:p.cat)===c.id?'selected':''}>${c.n}</option>`).join('')}</select>`)}
+ ${field('pb-desc','Descripción',`<textarea class="in" id="pb-desc" maxlength="300" oninput="$('cnt').textContent=this.value.length" placeholder="Medidas, estado, detalles útiles">${esc(v('desc'))}</textarea>`)}<div class="xs mut" style="text-align:right;margin-top:-14px"><span id="cnt">${v('desc').length}</span>/300</div>
+ <div class="row2"><div>${field('pb-cond','Estado',`<select class="in" id="pb-cond"><option value="">…</option>${CONDS.map(c=>`<option ${v('cond')===c?'selected':''}>${c}</option>`).join('')}</select>`)}</div>
+ <div>${field('pb-mode','Modalidad',`<select class="in" id="pb-mode" onchange="modeChange()"><option value="">…</option>${Object.entries(MODES).map(([k,l])=>`<option value="${k}" ${mode===k?'selected':''}>${l}</option>`).join('')}</select>`)}</div></div>
+ <div id="w-price" style="display:${mode==='venta'?'block':'none'}">${field('pb-price','Precio (USD)',`<div class="money"><span>$</span><input class="in" id="pb-price" type="number" min="0.25" step="0.25" inputmode="decimal" value="${e&&e.mode==='venta'?e.price:''}" placeholder="0.00"></div>`)}</div>
+ <div id="w-want" style="display:${mode==='intercambio'?'block':'none'}">${field('pb-want','¿Qué buscas a cambio? (opcional)',`<input class="in" id="pb-want" value="${esc(v('want'))}" placeholder="Ej.: herramientas o madera">`)}</div>
+ <div class="row2"><div>${field('pb-qty','Cantidad',`<input class="in" id="pb-qty" type="number" min="1" step="1" value="${v('qty',1)}">`)}</div>
+ <div>${field('pb-unit','Unidad',`<select class="in" id="pb-unit">${UNITS.map(u=>`<option ${v('unit','unidades')===u?'selected':''}>${u}</option>`).join('')}</select>`)}</div></div>
+ ${field('pb-kg','Peso aproximado (kg)',`<input class="in" id="pb-kg" type="number" min="0.1" step="0.1" inputmode="decimal" value="${v('kg','')}" placeholder="Sirve para calcular tu impacto">`)}
+ ${field('pb-cen','Punto de acopio',`<select class="in" id="pb-cen"><option value="">Selecciona…</option>${CENTROS.map(c=>`<option value="${c.id}" ${v('centro',centroDeCarrera(S.users.me.carrera))===c.id?'selected':''}>${c.n} — ${c.u}</option>`).join('')}</select>`)}
+ <div><button class="link" style="padding-left:0" onclick="go('centros')">Ver centros en el mapa</button></div>
+ <button class="btn p" onclick="doPublish('${e?e.id:''}')">${e?'Guardar cambios':'Publicar'}</button><div style="height:20px"></div></div>`};
+function slotInner(i){const s=DRAFT.photos[i];return s?`<img src="${s}" alt=""><button class="x" aria-label="Quitar foto" onclick="event.stopPropagation();rmPhoto(${i})">✕</button>`:'＋'}
+function refreshSlots(){[0,1,2,3].forEach(i=>{const el=$('slot'+i);if(el)el.innerHTML=slotInner(i)})}
+let slotI=0;function pickPhoto(i){slotI=Math.min(i,DRAFT.photos.length);$('file').click()}
+function rmPhoto(i){DRAFT.photos.splice(i,1);refreshSlots()}
+function gotPhoto(inp){const f=inp.files[0];inp.value='';if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,560/Math.max(im.width,im.height));const cv=document.createElement('canvas');cv.width=im.width*k;cv.height=im.height*k;cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);DRAFT.photos[slotI]=cv.toDataURL('image/jpeg',.6);refreshSlots()};im.src=r.result};r.readAsDataURL(f)}
+function modeChange(){const m=val('pb-mode');$('w-price').style.display=m==='venta'?'block':'none';$('w-want').style.display=m==='intercambio'?'block':'none'}
+function doPublish(editId){
+ const g=k=>val(k).trim();const mode=g('pb-mode');
+ let ok=setErr('pb-name',g('pb-name').length>=3?'':'Escribe el nombre del material');
+ ok=setErr('pb-cat',g('pb-cat')?'':'Elige una categoría')&&ok;
+ ok=setErr('pb-cond',g('pb-cond')?'':'Elige el estado')&&ok;
+ ok=setErr('pb-mode',mode?'':'Elige la modalidad')&&ok;
+ if(mode==='venta')ok=setErr('pb-price',Number(g('pb-price'))>0?'':'Indica un precio mayor a $0.00')&&ok;
+ ok=setErr('pb-qty',Number(g('pb-qty'))>=1?'':'Mínimo 1')&&ok;
+ ok=setErr('pb-kg',Number(g('pb-kg'))>0?'':'Indica un peso aproximado')&&ok;
+ ok=setErr('pb-cen',g('pb-cen')?'':'Elige un centro de acopio')&&ok;
+ if(!ok){document.querySelector('.in.bad')?.scrollIntoView({block:'center'});return toast('Revisa los campos marcados')}
+ const data={title:g('pb-name'),cat:g('pb-cat'),desc:g('pb-desc')||'Sin descripción.',cond:g('pb-cond'),mode,price:mode==='venta'?Math.round(Number(g('pb-price'))*100)/100:0,want:mode==='intercambio'?g('pb-want'):'',qty:Number(g('pb-qty')),unit:g('pb-unit'),kg:Number(g('pb-kg')),centro:g('pb-cen'),photos:DRAFT.photos.filter(Boolean)};
+ if(editId){Object.assign(mat(editId),data);back();toast('Cambios guardados');return}
+ const m={id:uid('m'),owner:'me',status:'activa',created:Date.now(),icon:cat(data.cat).i,...data};
+ S.mats.unshift(m);DRAFT={photos:[]};reset('profile');toast('¡Publicado! Ya es visible para la comunidad ESPOL');
+}
+
+/* P9 Donaciones */
+SCREENS.donaciones=p=>{
+ const c=p.cat||'';const list=active().filter(m=>m.mode==='donacion'&&(!c||m.cat===c)).sort((a,b)=>b.created-a.created);
+ return `${hBack('Donaciones')}<div class="bar">Categoría: <select onchange="NAV[NAV.length-1].p.cat=this.value;render()"><option value="">Todas</option>${CATS.map(x=>`<option value="${x.id}" ${c===x.id?'selected':''}>${x.n}</option>`).join('')}</select></div>
+ <div class="body np">${list.length?list.map(m=>`<div class="li" onclick="go('detail',{id:'${m.id}'})">${thumb(m)}<div class="mid"><div class="t">${esc(m.title)}</div><div class="s">${esc(m.cond)}</div><div class="s">${esc(centro(m.centro).u)}</div></div></div>`).join(''):empty('🎁','No hay donaciones disponibles en esta categoría.')}</div>
+ <div style="padding:10px 16px 14px;border-top:1px solid var(--line)"><button class="btn p" style="margin:0" onclick="go('publish',{mode:'donacion'})">Donar un material</button></div>`};
+
+/* P10 Mis intercambios */
+SCREENS.swaps=p=>{
+ const tab=p.tab||'recibidas';
+ const L=tab==='recibidas'?S.props.filter(x=>x.to==='me'&&x.status!=='completada'):tab==='enviadas'?S.props.filter(x=>x.from==='me'&&x.status!=='completada'):S.props.filter(x=>x.status==='completada'&&(x.to==='me'||x.from==='me'));
+ const card=pr=>{
+  const mineId=pr.from==='me'?pr.offer:pr.want,theirId=pr.from==='me'?pr.want:pr.offer,mi=mat(mineId),su=mat(theirId),other=user(pr.from==='me'?pr.to:pr.from);
+  if(!mi||!su)return '';
+  const tx=S.txs.find(t=>t.id===pr.tx);
+  const st={pendiente:'<span class="tag">Pendiente</span>',aceptada:'<span class="tag res">Aceptada · por entregar</span>',rechazada:'<span class="tag" style="color:var(--bad)">Rechazada</span>',cancelada:'<span class="tag">Cancelada</span>',completada:'<span class="tag don">Completada</span>'}[pr.status];
+  let acts='';
+  if(pr.status==='pendiente')acts=pr.to==='me'?`<div class="acts"><button class="btn p" onclick="acceptProp('${pr.id}')">Aceptar</button><button class="btn" onclick="rejectProp('${pr.id}')">Rechazar</button></div>`:`<div class="acts"><button class="btn" onclick="cancelProp('${pr.id}')">Cancelar propuesta</button></div>`;
+  if(pr.status==='aceptada'&&tx)acts=`<div class="acts"><button class="btn" onclick="openChat('${other.id}','${theirId}')">Chat</button><button class="btn p" onclick="go('retiro',{tx:'${tx.id}'})">Coordinar retiro</button></div>`;
+  if(pr.status==='completada'&&tx&&!tx.rated)acts=`<div class="acts"><button class="btn p" onclick="go('rate',{tx:'${tx.id}'})">Calificar experiencia</button></div>`;
+  return `<div class="swap"><div class="who">${pr.from==='me'?'Para':'De'} <b style="color:var(--ink)">${esc(other.name)}</b> · ${dm(pr.t)} ${st}</div>
+  <div class="pair"><div class="side" onclick="go('detail',{id:'${mi.id}'})"><div class="h">Mi material</div>${thumb(mi)}<div class="t">${esc(mi.title)}</div></div><div class="arrow">⇄</div><div class="side" onclick="go('detail',{id:'${su.id}'})"><div class="h">Su material</div>${thumb(su)}<div class="t">${esc(su.title)}</div></div></div>${acts}</div>`};
+ return `${hBack('Mis intercambios')}<div class="seg">${[['recibidas','Recibidas'],['enviadas','Enviadas'],['completadas','Completadas']].map(([k,l])=>`<button class="${tab===k?'on':''}" onclick="NAV[NAV.length-1].p.tab='${k}';render()">${l}</button>`).join('')}</div>
+ <div class="body">${L.length?L.map(card).join(''):empty('⇄',tab==='recibidas'?'No tienes propuestas recibidas.':tab==='enviadas'?'Aún no has enviado propuestas. Busca un material en modalidad Intercambio.':'Todavía no completas intercambios.')}</div>`};
+
+/* P11 Centros de acopio */
+const MAPA_OFICIAL='https://www.espol.edu.ec/es/mapa-del-campus';
+const rutaURL=c=>'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(c.f+' ESPOL Campus Gustavo Galindo Guayaquil');
+SCREENS.centros=p=>{
+ const sel=p.sel||'';const pick=id=>`NAV[NAV.length-1].p.sel='${id}';render(true)`;
+ const blk=(c,i)=>{const on=sel===c.id;return `<g style="cursor:pointer" onclick="${pick(c.id)}"><rect x="${c.x-30}" y="${c.y-12}" width="60" height="24" rx="5" fill="${on?'#d3eadb':'#e4e7e1'}" stroke="${on?'#2f7d4f':'#c9cdc5'}" stroke-width="${on?2:1}"/><text x="${c.x}" y="${c.y+4}" text-anchor="middle" font-size="10" font-weight="600" fill="#3a3a3c">${c.f}</text><circle cx="${c.x+28}" cy="${c.y-12}" r="9" fill="${on?'#2f7d4f':'#6b6b70'}"/><text x="${c.x+28}" y="${c.y-8.5}" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">${i+1}</text></g>`};
+ return `${hBack('Centros de acopio')}<div class="map" style="height:250px;background:#eef1ea">
+ <svg viewBox="0 0 360 250" role="img" aria-label="Esquema del campus con 8 centros de acopio">
+ <path d="M20 236 C120 226 250 240 350 222" stroke="#fff" stroke-width="9" fill="none"/><text x="300" y="244" font-size="8" fill="#8a8f86">Vía Perimetral</text>
+ <path d="M40 92 C120 84 220 82 330 78 M150 20 C148 100 150 170 160 232 M40 160 C110 158 250 152 330 150" stroke="#fff" stroke-width="5" fill="none"/>
+ <ellipse cx="128" cy="160" rx="30" ry="15" fill="#cfe3ee"/><text x="128" y="163" text-anchor="middle" font-size="8" fill="#5c7f93">Lago</text>
+ ${CENTROS.map(blk).join('')}</svg>
+ <div class="xs mut" style="position:absolute;left:8px;bottom:4px">Esquema ilustrativo, no a escala · <a href="${MAPA_OFICIAL}" target="_blank" rel="noopener" style="color:var(--g)">Mapa oficial ESPOL</a></div></div>
+ <div class="body np">${CENTROS.map((c,i)=>`<div class="li ${sel===c.id?'sel':''}" onclick="${pick(c.id)}"><div class="th" style="width:48px;height:48px;border-radius:50%;font-size:18px;font-weight:700;background:${sel===c.id?'var(--g)':'var(--ph)'};color:${sel===c.id?'#fff':'var(--ink)'}">${i+1}</div><div class="mid"><div class="t">${c.n} <span class="mut" style="font-weight:400">· ${c.f}</span></div><div class="s" style="white-space:normal">${c.a}</div><div class="s">${c.h}</div>${sel===c.id?`<a class="btn" style="margin-top:8px;padding:8px;text-decoration:none;color:var(--ink)" href="${rutaURL(c)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Cómo llegar (Google Maps)</a>`:''}</div></div>`).join('')}
+ <div class="note" style="margin:12px 16px">Cada asociación de estudiantes funciona como centro de acopio y punto de encuentro de su facultad. Los horarios son referenciales: confírmalos con la asociación.</div></div>`};
+
+/* N6 Bandeja de mensajes */
+SCREENS.inbox=()=>{
+ const list=S.chats.filter(c=>c.msgs.length).sort((a,b)=>b.msgs.at(-1).t-a.msgs.at(-1).t);
+ return `${hBrand()}<div class="bar" style="font-weight:600;color:var(--ink)">Mensajes</div><div class="body np">${list.length?list.map(c=>{const u=user(c.with),m=mat(c.mat),last=c.msgs.at(-1);return `<div class="li" onclick="go('chat',{id:'${c.id}'})"><div class="av s">${ini(u.name)}</div><div class="mid"><div class="t">${esc(u.name)}</div><div class="s">${m?esc(m.title)+' · ':''}${esc(last.x)}</div></div><div class="xs mut">${hm(last.t)}</div></div>`}).join(''):empty('💬','Aún no tienes conversaciones. Usa “Contactar” en un material.')}</div>${tabs('inbox')}`};
+
+/* P12 Chat */
+function openChat(other,matId){const c=getChat(other,matId);go('chat',{id:c.id})}
+const REPLIES=['Perfecto, ahí nos vemos.','Claro, sin problema.','¿Te parece en la mañana?','Listo, te aviso cuando lo deje en el centro.','Gracias por escribir 😊'];
+SCREENS.chat=p=>{
+ const c=S.chats.find(x=>x.id===p.id),u=user(c.with),m=mat(c.mat),tx=S.txs.find(t=>t.id===c.tx);
+ const role=m?(m.owner==='me'?'Interesado/a':m.mode==='venta'?'Vende':m.mode==='donacion'?'Dona':'Intercambia'):'';
+ setTimeout(()=>{const b=$('msgs');if(b)b.scrollTop=b.scrollHeight},0);
+ return `<div class="hdr"><button class="ib" aria-label="Atrás" onclick="back()">←</button><div class="av s">${ini(u.name)}</div><div style="flex:1;min-width:0"><div style="font-weight:600;cursor:pointer" onclick="go('profile',{uid:'${u.id}'})">${esc(u.name)}</div><div class="xs" style="color:var(--g)">En línea · ${role}</div></div><button class="ib" aria-label="Menú" onclick="openMenu()">☰</button></div>
+ ${m?`<div class="matbar" onclick="go('detail',{id:'${m.id}'})">${thumb(m)}<div style="flex:1;min-width:0"><b>${esc(m.title)}</b><div class="mut">${priceTxt(m)} · ${stTag(m)}</div></div>${tx&&tx.status==='reservada'?`<button class="btn p" onclick="event.stopPropagation();go('retiro',{tx:'${tx.id}'})">Coordinar retiro</button>`:tx&&tx.status==='entregada'&&!tx.rated?`<button class="btn p" onclick="event.stopPropagation();go('rate',{tx:'${tx.id}'})">Calificar</button>`:''}</div>`:''}
+ <div class="body np" id="msgs"><div class="msgs">${c.msgs.map(x=>x.f==='sys'?`<div class="msg sys">${esc(x.x)}</div>`:`<div class="msg ${x.f==='me'?'me':'ot'}">${esc(x.x)}<div class="tm">${hm(x.t)}</div></div>`).join('')||'<div class="empty">Escribe el primer mensaje.</div>'}</div></div>
+ <div class="compose"><input id="msg" placeholder="Escribe un mensaje…" onkeydown="if(event.key==='Enter')sendMsg('${c.id}')" autofocus><button aria-label="Enviar" onclick="sendMsg('${c.id}')">➤</button></div>`};
+function sendMsg(id){
+ const t=val('msg').trim();if(!t)return;const c=S.chats.find(x=>x.id===id);
+ c.msgs.push({f:'me',x:t,t:Date.now()});render();
+ setTimeout(()=>{c.msgs.push({f:c.with,x:REPLIES[Math.floor(Math.random()*REPLIES.length)],t:Date.now()});const cur=NAV[NAV.length-1];if(cur.s==='chat'&&cur.p.id===id)render();else notify(user(c.with).name+' te respondió',['chat',{id}])},1400);
+}
+
+/* P13 Retiro en acopio */
+SCREENS.retiro=p=>{
+ const tx=S.txs.find(t=>t.id===p.tx),ms=tx.mats.map(mat).filter(Boolean),m=ms[0],c=centro(m.centro),o=user(tx.other);
+ const iGive=tx.giver==='me';
+ return `${hBack('Retiro en acopio')}<div class="body">
+ <div style="display:flex;gap:10px;justify-content:center">${ms.map(x=>`<div class="th" style="width:${ms.length>1?120:170}px;height:${ms.length>1?120:170}px;border-radius:14px;font-size:64px">${x.photos[0]?`<img src="${x.photos[0]}" alt="">`:x.icon}</div>`).join(ms.length>1?'<div style="align-self:center;font-size:24px">⇄</div>':'')}</div>
+ <div class="vk"><div>Material</div>${ms.map(x=>esc(x.title)).join(' ⇄ ')}</div>
+ <div class="vk"><div>Cantidad</div>${ms.map(qtyTxt).join(' ⇄ ')}</div>
+ <div class="vk"><div>Con</div>${esc(o.name)} · ${tx.type==='intercambio'?'intercambio':iGive?'tú entregas':'tú recibes'}</div>
+ <div class="vk"><div>Punto de acopio</div>${esc(c.n)} · ${esc(c.u)}<br><span class="sm mut">${esc(c.a)}</span></div>
+ <div class="vk"><div>Horario</div>${c.h}</div>
+ ${tx.status==='reservada'?`<h3>Confirmar la entrega</h3>
+ <p class="sm mut">En el centro, quien recibe dicta este código a quien entrega. Ingresarlo confirma la entrega para ambas partes.</p>
+ <div class="code">${tx.code}</div>
+ ${field('code','Código de entrega','<input class="in" id="code" inputmode="numeric" maxlength="4" placeholder="0000">')}
+ <button class="btn p" onclick="confirmDelivery('${tx.id}')">Confirmar entrega</button>
+ <button class="btn" onclick="cancelTx('${tx.id}')">Cancelar reserva</button>`:`<div class="note">Entrega confirmada el ${dm(tx.done||tx.t)}.</div>${!tx.rated?`<button class="btn p" onclick="go('rate',{tx:'${tx.id}'})">Calificar experiencia</button>`:''}`}</div>`};
+function confirmDelivery(id){
+ const tx=S.txs.find(t=>t.id===id);
+ if(!setErr('code',val('code').trim()===tx.code?'':'El código no coincide'))return;
+ tx.status='entregada';tx.done=Date.now();
+ const kg=tx.mats.map(mat).filter(Boolean).reduce((a,m)=>{m.status='entregada';return a+m.kg},0);
+ tx.kg=kg;S.users.me.kg+=kg;S.users[tx.other].kg+=kg;
+ if(tx.prop){const pr=S.props.find(p=>p.id===tx.prop);if(pr)pr.status='completada'}
+ const c=S.chats.find(x=>x.tx===id);if(c)c.msgs.push({f:'sys',x:'Entrega confirmada en el centro de acopio.',t:Date.now()});
+ replace('rate',{tx:id});
+}
+function cancelTx(id){
+ const tx=S.txs.find(t=>t.id===id);tx.status='cancelada';tx.mats.map(mat).filter(Boolean).forEach(m=>m.status='activa');
+ if(tx.prop){const pr=S.props.find(p=>p.id===tx.prop);if(pr)pr.status='cancelada'}
+ const c=S.chats.find(x=>x.tx===id);if(c){c.msgs.push({f:'sys',x:'Reserva cancelada. El material vuelve a estar disponible.',t:Date.now()});c.tx=null}
+ back();toast('Reserva cancelada');
+}
+
+/* P14 Calificar experiencia */
+let RATE=0,RATED=null;
+SCREENS.rate=p=>{
+ const tx=S.txs.find(t=>t.id===p.tx),o=user(tx.other),ms=tx.mats.map(mat).filter(Boolean);
+ if(RATED===tx.id)return `${hModal('Re-Bio')}<div class="body"><div class="done"><div class="e">♻️</div><h2 style="margin:8px 0">Material reutilizado</h2><p>Gracias por darle una segunda vida.</p><p class="mut sm" style="margin-top:10px">Sumaste <b>${kgf(tx.kg||0)} kg</b> a tu impacto. Total: ${kgf(S.users.me.kg)} kg.</p></div><button class="btn p" onclick="RATED=null;RATE=0;reset('home')">Volver al inicio</button><button class="btn" onclick="RATED=null;RATE=0;reset('profile')">Ver mi perfil</button></div>`;
+ return `${hModal('Califica tu experiencia')}<div class="body">
+ <div class="user" style="cursor:default"><div class="av">${ini(o.name)}</div><div><b>${esc(o.name)}</b><div class="sm mut">${ms.map(m=>esc(m.title)).join(' ⇄ ')}</div></div></div>
+ <div class="bigstars">${[1,2,3,4,5].map(i=>`<button class="${i<=RATE?'on':''}" aria-label="${i} estrellas" onclick="RATE=${i};render(true)">★</button>`).join('')}</div>
+ <div class="center sm mut">${['Toca una estrella','Mala','Regular','Buena','Muy buena','Excelente'][RATE]}</div>
+ ${field('rate-txt','Cuéntanos tu experiencia (opcional)','<textarea class="in" id="rate-txt" maxlength="300" placeholder="¿Cómo fue la entrega?"></textarea>')}
+ <button class="btn p" ${RATE?'':'disabled'} onclick="sendRate('${tx.id}')">Enviar</button></div>`};
+function sendRate(id){const tx=S.txs.find(t=>t.id===id);S.users[tx.other].ratings.push(RATE);tx.rated=true;tx.status='calificada';tx.comment=val('rate-txt');RATED=id;render()}
+
+/* P15 Perfil */
+SCREENS.profile=p=>{
+ const id=p.uid||'me',u=user(id),own=id==='me';
+ const pubs=S.mats.filter(m=>m.owner===id&&(own||m.status==='activa'));
+ const a=avg(u);
+ return `${own&&NAV.length===1?hBrand():hBack(own?'Mi perfil':'Perfil')}<div class="body">
+ <div style="display:flex;gap:16px;align-items:center"><div class="av l">${ini(u.name)}</div><div><div style="font-size:20px;font-weight:700">${esc(u.name)}</div><div class="mut">${esc(u.carrera)}${facDe(u.carrera)?' · '+facDe(u.carrera).s:''}</div><div class="sm" style="margin-top:6px">Calificación</div><div>${stars(a)} <span class="sm mut">${u.ratings.length?a.toFixed(1)+' ('+u.ratings.length+')':'Sin calificaciones'}</span></div></div></div>
+ <div class="stat"><span>Materiales reutilizados</span><div style="text-align:right"><b>${kgf(u.kg)}</b><div class="sm">kg</div></div></div>
+ <h3>${own?'Mis publicaciones':'Publicaciones activas'}</h3>
+ ${pubs.length?`<div style="margin:0 -16px">${pubs.map(m=>`<div class="li" onclick="go('detail',{id:'${m.id}'})">${thumb(m)}<div class="mid"><div class="t">${esc(m.title)}</div><div>${modeTag(m)}${own?stTag(m):''}</div></div><span class="chev">›</span></div>`).join('')}</div>`:empty('📦',own?'Aún no publicas materiales.':'No tiene publicaciones activas.',own?`<button class="btn p" style="margin-top:14px" onclick="go('publish')">Publicar mi primer material</button>`:'')}
+ ${own?`<h3>Cuenta</h3><div style="margin:0 -16px"><div class="li" onclick="go('swaps')"><div class="mid"><div class="t">⇄ Mis intercambios</div></div><span class="chev">›</span></div><div class="li" onclick="go('settings')"><div class="mid"><div class="t">⚙️ Configuración</div></div><span class="chev">›</span></div></div>`:''}
+ <div style="height:16px"></div></div>${own&&NAV.length===1?tabs('profile'):''}`};
+
+/* N8 Configuración */
+SCREENS.settings=()=>{const u=S.users.me;return `${hBack('Configuración')}<div class="body">
+ ${field('s-name','Nombre',`<input class="in" id="s-name" value="${esc(u.name)}">`)}
+ ${field('s-car','Carrera',`<select class="in" id="s-car">${carreraOptions(u.carrera)}</select>`)}
+ <div class="kv"><span>Correo</span><span>${esc(u.email||S.session||'')}</span></div>
+ <button class="btn p" onclick="saveSettings()">Guardar cambios</button>
+ <h3>Notificaciones</h3>
+ <label class="toggle">Propuestas y mensajes <input type="checkbox" checked></label>
+ <label class="toggle">Novedades de mis categorías <input type="checkbox"></label>
+ <h3>Sesión y datos</h3>
+ <button class="btn" onclick="logout()">Cerrar sesión</button>
+ <button class="btn d" onclick="if(confirmInline('reset')){localStorage.removeItem(KEY);S=seed();reset('login');toast('Datos de prueba restablecidos')}">Restablecer datos de prueba</button>
+ <p class="xs mut center" style="margin-top:16px">Re-Bio · prototipo v0.1 · Comunidad ESPOL</p></div>`};
+function saveSettings(){const u=S.users.me;u.name=val('s-name').trim()||u.name;u.carrera=val('s-car');if(S.accounts[S.session])Object.assign(S.accounts[S.session],{name:u.name,carrera:u.carrera});back();toast('Perfil actualizado')}
+
+/* N7 Notificaciones */
+SCREENS.notifs=()=>{const html=`${hBack('Notificaciones')}<div class="body np">${S.notifs.length?S.notifs.map((n,i)=>`<div class="li" onclick="openNotif(${i})" style="${n.r?'':'background:var(--gl)'}"><div class="mid"><div style="font-size:14px">${esc(n.x)}</div><div class="s">${dm(n.t)} ${hm(n.t)}</div></div><span class="chev">›</span></div>`).join(''):empty('🔔','No tienes notificaciones.')}</div>`;setTimeout(()=>{S.notifs.forEach(n=>n.r=true);save()},0);return html};
+function openNotif(i){const n=S.notifs[i];if(n.go)go(n.go[0],n.go[1])}
+
+/* N9 Reportar */
+SCREENS.report=p=>`${hBack('Reportar publicación')}<div class="body"><p class="sm mut">¿Qué problema tiene “${esc(mat(p.id).title)}”?</p>
+ ${['Información falsa o engañosa','Material prohibido o peligroso','Precio abusivo','Spam o publicación repetida','Otro motivo'].map((r,i)=>`<label class="radio"><input type="radio" name="rep" value="${i}"> ${r}</label>`).join('')}
+ ${field('rep-txt','Detalles (opcional)','<textarea class="in" id="rep-txt" maxlength="300"></textarea>')}
+ <button class="btn p" onclick="if(!document.querySelector('[name=rep]:checked'))return toast('Elige un motivo');back();toast('Reporte enviado. Lo revisaremos pronto.')">Enviar reporte</button></div>`;
+
+/* Guardas: pantallas que requieren sesión */
+const PUBLIC=['splash','login','register','forgot','verify'];
+const _render=render;
+render=function(k){const cur=NAV[NAV.length-1];if(!S.session&&!PUBLIC.includes(cur.s)){NAV=[{s:'login',p:{}}]}_render(k)};
+render();
+/* Botón Atrás de Android (solo dentro de la app instalada) */
+try{const A=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.App;if(A)A.addListener('backButton',()=>{if(document.querySelector('.drawer-bg'))closeMenu();else if(NAV.length>1)back();else A.exitApp()})}catch(e){}
+if('serviceWorker' in navigator&&location.protocol==='https:'){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+</script>
+</body>
+</html>
